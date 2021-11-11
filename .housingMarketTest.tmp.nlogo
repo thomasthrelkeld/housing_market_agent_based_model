@@ -42,7 +42,7 @@ to setup
     ifelse (random 2) = 1 [
       create-sellers 1[
         set color 25
-         setshape "person"
+;         setshape "person"
         forward 15
         set tempUidList lput who tempUidList
         output-show ""
@@ -114,10 +114,10 @@ ticks
 30.0
 
 BUTTON
-47
+5
+10
 68
-110
-101
+43
 setup
 setup
 NIL
@@ -138,10 +138,10 @@ OUTPUT
 11
 
 BUTTON
-69
-175
-132
-208
+136
+10
+199
+43
 go
 go
 T

@@ -60,11 +60,11 @@ to setup
         set gross-approved-amount annual-salary * .28 * 30
 ; Reduce the max purchase price based on the mortgate interest rate selected
      set max-purchase-price ((gross-approved-amount * (1 + (Mtg-Int-Rate / 1200))^(360) - gross-approved-amount) / ((360 * (Mtg-Int-Rate / 1200)) * (1 + (Mtg-Int-Rate / 1200))^(360))) ; Determines how much house a buyer can afford based on the total amount the mortgage company approved them for and the current mortgage interest rate. Assumes a 30 year mortgage for the buyer
-; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through "one-of" and applies max $15k / tax credit %.
+; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through random 2 = 1 and applies max $15k / tax credit %.
          ifelse annual-salary > 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
           [ set tax-credit-amount (max-purchase-price * tax-credit) ]
           [ set tax-credit-amount 0 ]
-        set max-purchase-price max-purchase-price + r(min ( list tax-credit-amount 15000 ))
+        set max-purchase-price max-purchase-price + random 2 = 1 * (min ( list tax-credit-amount 15000 ))
 
       ]
 
@@ -169,10 +169,10 @@ NIL
 1
 
 SLIDER
-6
-51
-200
-84
+7
+181
+201
+214
 Mtg-Int-Rate
 Mtg-Int-Rate
 3
@@ -184,10 +184,10 @@ APR
 HORIZONTAL
 
 SLIDER
-7
-94
-199
-127
+6
+288
+202
+321
 Prop-Tax-Rate
 Prop-Tax-Rate
 2
@@ -199,27 +199,77 @@ Prop-Tax-Rate
 HORIZONTAL
 
 INPUTBOX
-6
-138
-199
-198
+7
+83
+200
+143
 Avg-Med-Income
-0.0
+69217.0
 1
 0
 Number
 
 SLIDER
 7
-209
+146
 201
-242
+179
 Tax-Credit
 Tax-Credit
 0
 20
 10.0
 .1
+1
+%
+HORIZONTAL
+
+SLIDER
+6
+251
+202
+284
+Population-Density
+Population-Density
+3500
+3850
+3674.0
+100
+1
+ppl/sq mile
+HORIZONTAL
+
+TEXTBOX
+9
+63
+159
+81
+Buyer Variables
+11
+0.0
+1
+
+TEXTBOX
+9
+232
+159
+250
+Location Variables
+11
+0.0
+1
+
+SLIDER
+22
+365
+201
+398
+Unemployment-Rate
+Unemployment-Rate
+2.5
+12.5
+4.0
+1
 1
 %
 HORIZONTAL

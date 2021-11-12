@@ -204,7 +204,7 @@ INPUTBOX
 199
 198
 Avg-Med-Income
-0.0
+69217.0
 1
 0
 Number

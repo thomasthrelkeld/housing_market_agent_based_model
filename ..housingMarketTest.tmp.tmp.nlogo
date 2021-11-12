@@ -64,7 +64,7 @@ to setup
          ifelse annual-salary > 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
           [ set tax-credit-amount (max-purchase-price * tax-credit) ]
           [ set tax-credit-amount 0 ]
-        set max-purchase-price max-purchase-price + (min ( list tax-credit-amount 15000 )) 0 ]
+        set max-purchase-price max-purchase-price + r(min ( list tax-credit-amount 15000 ))
 
       ]
 

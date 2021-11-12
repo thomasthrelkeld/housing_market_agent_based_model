@@ -61,8 +61,10 @@ to setup
 ; Reduce the max purchase price based on the mortgate interest rate selected
      set max-purchase-price ((gross-approved-amount * (1 + (Mtg-Int-Rate / 1200))^(360) - gross-approved-amount) / ((360 * (Mtg-Int-Rate / 1200)) * (1 + (Mtg-Int-Rate / 1200))^(360))) ; Determines how much house a buyer can afford based on the total amount the mortgage company approved them for and the current mortgage interest rate. Assumes a 30 year mortgage for the buyer
 ; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through "one-of" and applies max $15k / tax credit %.
-        set tax-credit-amount (max-purchase-price * tax-credit)
-        set max-purchase-price max-purchase-price + min [tax-credit-amount 15000]
+         ifelse annual-salary > 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
+          [ set tax-credit-amount (max-purchase-price * tax-credit) ]
+          [ set tax-credit-amount 0 ]
+        set max-purchase-price max-purchase-price + (min ( list tax-credit-amount 15000 ))
 
       ]
 

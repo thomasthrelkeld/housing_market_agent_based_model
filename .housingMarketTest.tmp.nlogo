@@ -169,10 +169,10 @@ NIL
 1
 
 SLIDER
-6
-51
-200
-84
+7
+181
+201
+214
 Mtg-Int-Rate
 Mtg-Int-Rate
 3
@@ -184,10 +184,10 @@ APR
 HORIZONTAL
 
 SLIDER
-7
-94
-199
-127
+6
+288
+202
+321
 Prop-Tax-Rate
 Prop-Tax-Rate
 2
@@ -199,10 +199,10 @@ Prop-Tax-Rate
 HORIZONTAL
 
 INPUTBOX
-6
-138
-199
-198
+7
+83
+200
+143
 Avg-Med-Income
 69217.0
 1
@@ -211,15 +211,65 @@ Number
 
 SLIDER
 7
-209
+146
 201
-242
+179
 Tax-Credit
 Tax-Credit
 0
 20
 10.0
 .1
+1
+%
+HORIZONTAL
+
+SLIDER
+6
+251
+202
+284
+Population-Density
+Population-Density
+3500
+3850
+3674.0
+100
+1
+ppl/sq mile
+HORIZONTAL
+
+TEXTBOX
+9
+63
+159
+81
+Buyer Variables
+11
+0.0
+1
+
+TEXTBOX
+9
+232
+159
+250
+Location Variables
+11
+0.0
+1
+
+SLIDER
+6
+326
+202
+359
+Unemployment-Rate
+Unemployment-Rate
+2.5
+12.5
+4.0
+1
 1
 %
 HORIZONTAL

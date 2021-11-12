@@ -17,16 +17,18 @@ properties-own [
   ;property-uid ;unique id associated with property***turtles have build in uid called "who"  http://ccl.northwestern.edu/netlogo/docs/dict/who.html
   owner-uid ; unique id associated with owner of property
   for-sale ; if true than house is on market if false than house is sold
-  price   ; what property is currently worth on market
 
 ]
 
 sellers-own [
-
+ asking-price   ; what the asking price for the house is
 ]
 
 buyers-own [
-
+  annual-salary ; salary for the buyer
+  max-purchase-price  ; amount of money a buyer can offer on a house
+  gross-approved-amount ; gross amount of money a person has to purchase a house inclusive of interest payments, taxes, etc.
+  tax-credit-amount ; determines whether they would qualify for the tax credit
 ]
 
 
@@ -42,7 +44,7 @@ to setup
     ifelse (random 2) = 1 [
       create-sellers 1[
         set color 25
-;         setshape "person"
+         set shape "person"
         forward 15
         set tempUidList lput who tempUidList
         output-show ""
@@ -52,6 +54,16 @@ to setup
         set color 75
         set shape "person"
         output-show ""
+; Set the buyer's annual salary based on the average median income for the area
+        set annual-salary (random avg-med-income)
+; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
+        set gross-approved-amount annual-salary * .28 * 30
+; Reduce the max purchase price based on the mortgate interest rate selected
+     set max-purchase-price ((gross-approved-amount * (1 + (Mtg-Int-Rate / 1200))^(360) - gross-approved-amount) / ((360 * (Mtg-Int-Rate / 1200)) * (1 + (Mtg-Int-Rate / 1200))^(360))) ; Determines how much house a buyer can afford based on the total amount the mortgage company approved them for and the current mortgage interest rate. Assumes a 30 year mortgage for the buyer
+; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through "one-of" and applies max $15k / tax credit %.
+        set tax-credit-amount (max-purchase-price * tax-credit)
+        set max-purchase-price max-purchase-price + min [tax-credit-amount 15000]
+
       ]
 
     ]
@@ -153,6 +165,62 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+6
+51
+200
+84
+Mtg-Int-Rate
+Mtg-Int-Rate
+3
+19
+7.9
+.1
+1
+APR
+HORIZONTAL
+
+SLIDER
+7
+94
+199
+127
+Prop-Tax-Rate
+Prop-Tax-Rate
+2
+4
+2.6
+.1
+1
+%
+HORIZONTAL
+
+INPUTBOX
+6
+138
+199
+198
+Avg-Med-Income
+0.0
+1
+0
+Number
+
+SLIDER
+7
+209
+201
+242
+Tax-Credit
+Tax-Credit
+0
+20
+10.0
+.1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

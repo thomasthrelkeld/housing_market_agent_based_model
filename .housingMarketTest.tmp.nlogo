@@ -49,6 +49,8 @@ to setup
         set tempUidList lput who tempUidList
         output-show ""
       ]
+
+
     ][
       create-buyers 1[
         set color 75

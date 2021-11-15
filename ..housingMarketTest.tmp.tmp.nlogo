@@ -49,13 +49,14 @@ to setup
         set tempUidList lput who tempUidList
         output-show ""
       ]
+
     ][
       create-buyers 1[
         set color 75
         set shape "person"
         output-show ""
 ; Set the buyer's annual salary based on the average median income for the area
-        set annual-salary (random-normal avg-med-income )
+        set annual-salary (random avg-med-income)
 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
         set gross-approved-amount annual-salary * .28 * 30
 ; Reduce the max purchase price based on the mortgate interest rate selected

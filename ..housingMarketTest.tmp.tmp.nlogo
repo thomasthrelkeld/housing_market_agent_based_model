@@ -50,6 +50,7 @@ to setup
         output-show ""
       ]
 
+
     ][
       create-buyers 1[
         set color 75
@@ -153,9 +154,9 @@ OUTPUT
 11
 
 BUTTON
-136
+119
 10
-199
+182
 43
 go
 go

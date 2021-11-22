@@ -11,14 +11,15 @@ globals [
 breed [ buyers buyer ]
 breed [ sellers seller ]
 
-breed [ properties property ]
+; Justin's Github Test - commenting out properties as a breed based on new approach
+;breed [ properties property ]
 
-properties-own [
+; properties-own [
   ;property-uid ;unique id associated with property***turtles have build in uid called "who"  http://ccl.northwestern.edu/netlogo/docs/dict/who.html
-  owner-uid ; unique id associated with owner of property
-  for-sale ; if true than house is on market if false than house is sold
+  ; owner-uid ; unique id associated with owner of property
+  ; for-sale ; if true than house is on market if false than house is sold
 
-]
+; ]
 
 sellers-own [
  asking-price   ; what the asking price for the house is
@@ -29,6 +30,8 @@ buyers-own [
   max-purchase-price  ; amount of money a buyer can offer on a house
   gross-approved-amount ; gross amount of money a person has to purchase a house inclusive of interest payments, taxes, etc.
   tax-credit-amount ; determines whether they would qualify for the tax credit
+  mortgage interest rate ; the interest rate the buyer gets (based on the Prime interest rate)
+  min-desirability-score ; the minimum desirability score the buyer is willing to settle for
 ]
 
 

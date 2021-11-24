@@ -5,7 +5,7 @@ globals [
   num-properties-on-market
   ; these variables track data as the model runs
   total-sales
-
+; Ashley was able to comment & save!
 ]
 
 breed [ buyers buyer ]

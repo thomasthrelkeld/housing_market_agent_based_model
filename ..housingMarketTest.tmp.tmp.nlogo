@@ -32,7 +32,7 @@ buyers-own [
   max-purchase-price  ; amount of money a buyer can offer on a house
   gross-approved-amount ; gross amount of money a person has to purchase a house inclusive of interest payments, taxes, etc.
   tax-credit-amount ; determines whether they would qualify for the tax credit
-  mortgage interest rate ; the interest rate the buyer gets (based on the Prime interest rate)
+  mtg-int-rate ; the interest rate the buyer gets (based on the Prime interest rate)
   min-desirability-score ; the minimum desirability score the buyer is willing to settle for
 ]
 
@@ -69,6 +69,8 @@ to setup
         set annual-salary (random avg-med-income) ; Could update this to random normal to get more typical distribution.
 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
         set gross-approved-amount annual-salary * .28 * 30
+; Determine the buyer's mortgage interest rate based on prime and their "credit score"
+        set mtg-int-rate prime-int-rate + abs(random-normal 0 2.5 )
 ; Reduce the max purchase price based on the mortgate interest rate selected
      set max-purchase-price ((gross-approved-amount * (1 + (Mtg-Int-Rate / 1200))^(360) - gross-approved-amount) / ((360 * (Mtg-Int-Rate / 1200)) * (1 + (Mtg-Int-Rate / 1200))^(360))) ; Determines how much house a buyer can afford based on the total amount the mortgage company approved them for and the current mortgage interest rate. Assumes a 30 year mortgage for the buyer
 ; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through random 2 = 1 and applies max $15k / tax credit %.
@@ -92,19 +94,19 @@ to setup
 
 end
 
-to init-property [uid]
-  create-properties 1 [
-    move-to seller uid
-    create-link-with seller uid
-    facexy 0 0
-    forward -2
-    set color 125
-    set shape "house"
-    set size 1
-    set owner-uid uid
-  ]
+;to init-property [uid]
+;  create-properties 1 [
+;    move-to seller uid
+;    create-link-with seller uid
+;    facexy 0 0
+;    forward -2
+;    set color 125
+;    set shape "house"
+;    set size 1
+;    set owner-uid uid
+;  ]
 
-end
+;end
 
 to go
   output-show ticks
@@ -185,8 +187,8 @@ SLIDER
 181
 201
 214
-Mtg-Int-Rate
-Mtg-Int-Rate
+Prime-Int-Rate
+Prime-Int-Rate
 3
 19
 7.9
@@ -197,17 +199,17 @@ HORIZONTAL
 
 SLIDER
 6
-288
+217
 202
-321
-Prop-Tax-Rate
-Prop-Tax-Rate
-2
-4
-2.6
-.1
+250
+Avg-Home-Price
+Avg-Home-Price
+150000
+500000
+350000.0
+10000
 1
-%
+$
 HORIZONTAL
 
 INPUTBOX
@@ -239,16 +241,16 @@ HORIZONTAL
 SLIDER
 6
 251
-202
+264
 284
-Population-Density
-Population-Density
-3500
-3850
-3674.0
-100
+Buyer-Seller-Ratio
+Buyer-Seller-Ratio
+0
+10
+1.0
+.01
 1
-ppl/sq mile
+Buyer per 1 Seller
 HORIZONTAL
 
 TEXTBOX
@@ -260,31 +262,6 @@ Buyer Variables
 11
 0.0
 1
-
-TEXTBOX
-9
-232
-159
-250
-Location Variables
-11
-0.0
-1
-
-SLIDER
-6
-326
-202
-359
-Unemployment-Rate
-Unemployment-Rate
-2.5
-12.5
-4.0
-1
-1
-%
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

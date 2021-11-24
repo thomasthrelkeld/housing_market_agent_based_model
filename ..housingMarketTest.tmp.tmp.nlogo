@@ -11,24 +11,29 @@ globals [
 breed [ buyers buyer ]
 breed [ sellers seller ]
 
-breed [ properties property ]
+; Justin's Github Test - commenting out properties as a breed based on new approach
+;breed [ properties property ]
 
-properties-own [
+; properties-own [
   ;property-uid ;unique id associated with property***turtles have build in uid called "who"  http://ccl.northwestern.edu/netlogo/docs/dict/who.html
-  owner-uid ; unique id associated with owner of property
-  for-sale ; if true than house is on market if false than house is sold
+  ; owner-uid ; unique id associated with owner of property
+  ; for-sale ; if true than house is on market if false than house is sold
 
-]
+; ]
 
 sellers-own [
- asking-price   ; what the asking price for the house is
-]
+  asking-price   ; what the asking price for the house is
+  house-desirability-score ; desirability score for the seller's house
+  number-of-offers ; captures the number of offers on the seller's house
+  ]
 
 buyers-own [
   annual-salary ; salary for the buyer
   max-purchase-price  ; amount of money a buyer can offer on a house
   gross-approved-amount ; gross amount of money a person has to purchase a house inclusive of interest payments, taxes, etc.
   tax-credit-amount ; determines whether they would qualify for the tax credit
+  mortgage interest rate ; the interest rate the buyer gets (based on the Prime interest rate)
+  min-desirability-score ; the minimum desirability score the buyer is willing to settle for
 ]
 
 
@@ -42,12 +47,16 @@ to setup
   let i 0
   while [ i < population ][
     ifelse (random 2) = 1 [
+
       create-sellers 1[
         set color 25
          set shape "person"
         forward 15
         set tempUidList lput who tempUidList
         output-show ""
+; Determine desirability score for the seller's house as a random number between 1-5
+        set house-desirability-score (1 + random (4))
+
       ]
 
 
@@ -57,7 +66,7 @@ to setup
         set shape "person"
         output-show ""
 ; Set the buyer's annual salary based on the average median income for the area
-        set annual-salary (random avg-med-income)
+        set annual-salary (random avg-med-income) ; Could update this to random normal to get more typical distribution.
 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
         set gross-approved-amount annual-salary * .28 * 30
 ; Reduce the max purchase price based on the mortgate interest rate selected
@@ -67,7 +76,8 @@ to setup
           [ set tax-credit-amount (max-purchase-price * tax-credit) ]
           [ set tax-credit-amount 0 ]
         set max-purchase-price max-purchase-price + random 2 = 1 * (min ( list tax-credit-amount 15000 ))
-
+; Determine desirability score for the buyer as a random number between 1-5
+        set min-desirability-score (1 + random (4))
       ]
 
     ]

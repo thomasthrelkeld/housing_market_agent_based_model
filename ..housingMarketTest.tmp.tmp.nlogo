@@ -86,7 +86,7 @@ to setup
     set i i + 1
   ]
 
-  layout-circle sellers 12
+;  layout-circle sellers 12
   layout-circle buyers 8
   foreach tempUidList [uid -> init-property uid ]
   ask sellers [facexy 0 0]

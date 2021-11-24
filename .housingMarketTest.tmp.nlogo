@@ -86,10 +86,10 @@ to setup
     set i i + 1
   ]
 
-  layout-circle sellers 12
-  layout-circle buyers 8
-  foreach tempUidList [uid -> init-property uid ]
-  ask sellers [facexy 0 0]
+;  layout-circle sellers 12
+;  layout-circle buyers 8
+;  foreach tempUidList [uid -> init-property uid ]
+;  ask sellers [facexy 0 0]
   reset-ticks
 
 end
@@ -110,6 +110,7 @@ end
 
 to go
   output-show ticks
+
   tick
 
 end

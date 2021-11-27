@@ -25,6 +25,7 @@ sellers-own [
   asking-price   ; what the asking price for the house is
   house-desirability-score ; desirability score for the seller's house
   number-of-offers ; captures the number of offers on the seller's house
+  seller-desperation-score ; denotes how desperate the seller is to sell their home.
   ]
 
 buyers-own [
@@ -34,6 +35,7 @@ buyers-own [
   tax-credit-amount ; determines whether they would qualify for the tax credit
   mtg-int-rate ; the interest rate the buyer gets (based on the Prime interest rate)
   min-desirability-score ; the minimum desirability score the buyer is willing to settle for
+  buyer-desperation-score ; denotes how desperate the seller is to sell their home.
 ]
 
 
@@ -41,47 +43,39 @@ to setup
   clear-all
 
   ; set the global variables
-  set population 50
+  set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only.
   set total-sales 0
   let tempUidList []
   let i 0
-  while [ i < population ][
-    ifelse (random 2) = 1 [
-
-      create-sellers 1[
+      create-sellers 1[ ; only create 1 seller at a time. Once a property is sold (or expires in time) we'll re-create a new seller.
         set color 25
          set shape "person"
         forward 15
         set tempUidList lput who tempUidList
         output-show ""
-; Determine desirability score for the seller's house as a random number between 1-5
-        set house-desirability-score (1 + random (4))
-
-      ]
-
-
-    ][
+        set asking-price random-normal avg-home-price 1 ;set the asking price based on the selected avg home price with normal distribution.
+    set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
+    set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
+  ]
+  while [ i < population ][
       create-buyers 1[
         set color 75
         set shape "person"
         output-show ""
-; Set the buyer's annual salary based on the average median income for the area
-        set annual-salary (random avg-med-income) ; Could update this to random normal to get more typical distribution.
-; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
-        set gross-approved-amount annual-salary * .28 * 30
-; Determine the buyer's mortgage interest rate based on prime and their "credit score"
-        set mtg-int-rate prime-int-rate + abs(random-normal 0 2.5 )
-; Reduce the max purchase price based on the mortgate interest rate selected
+        set annual-salary (random-normal avg-med-income 1) ; Set the buyer's annual salary based on the average median income for the area. Use random-normal to create variation in the salaries for buyers
+        set gross-approved-amount annual-salary * .28 * 30 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
+        set mtg-int-rate prime-int-rate + abs(random-normal 0 1 ) ; Determine the buyer's mortgage interest rate based on prime and their "credit score". Since their interest rate can never be less than prime, take abs value of amount "on top" of prime
+
+      ; Reduce the max purchase price based on the mortgate interest rate selected
      set max-purchase-price ((gross-approved-amount * (1 + (Mtg-Int-Rate / 1200))^(360) - gross-approved-amount) / ((360 * (Mtg-Int-Rate / 1200)) * (1 + (Mtg-Int-Rate / 1200))^(360))) ; Determines how much house a buyer can afford based on the total amount the mortgage company approved them for and the current mortgage interest rate. Assumes a 30 year mortgage for the buyer
-; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through random 2 = 1 and applies max $15k / tax credit %.
+
+      ; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through random 2 = 1 and applies max $15k / tax credit %.
          ifelse annual-salary > 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
           [ set tax-credit-amount (max-purchase-price * tax-credit) ]
           [ set tax-credit-amount 0 ]
-        set max-purchase-price max-purchase-price + random 2 = 1 * (min ( list tax-credit-amount 15000 ))
-; Determine desirability score for the buyer as a random number between 1-5
-        set min-desirability-score (1 + random (4))
-      ]
-
+     set max-purchase-price max-purchase-price + random 2 = 1 * (min ( list tax-credit-amount 15000 ))
+     set min-desirability-score (1 + random (4)) ; Determine desirability score for the buyer as a random number between 1-5
+     set buyer-desperation-score (1 + random (4)) ; Determine desperation score for the buyer to simulate how agressive they will be in their offer. Allows for psudo-random behavior of people
     ]
     set i i + 1
   ]
@@ -110,9 +104,15 @@ end
 
 to go
   output-show ticks
-
   tick
+; Buyer Logic
+  ifelse (max-purchase-price <= asking-price) and (house-desirability-score <= min-desirability-score)
+  [
 
+  ]
+  [
+
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

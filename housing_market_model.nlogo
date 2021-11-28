@@ -36,6 +36,7 @@ buyers-own [
   mtg-int-rate ; the interest rate the buyer gets (based on the Prime interest rate)
   min-desirability-score ; the minimum desirability score the buyer is willing to settle for
   buyer-desperation-score ; denotes how desperate the seller is to sell their home.
+  buyer-offer ; offer value for buyer
 ]
 
 
@@ -106,13 +107,14 @@ to go
   output-show ticks
   tick
 ; Buyer Logic
-  ifelse (max-purchase-price <= asking-price) and (house-desirability-score <= min-desirability-score)
-  [
-
-  ]
-  [
-
-  ]
+  ifelse (house-desirability-score <= min-desirability-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount. NOTE: Do we drop the askng price piece? If the buyer is not desperate, they would underbid asking anyways... Ask Team...
+  ;  [ifelse ((buyer-desperation-score <= 2) and (abs(house-desirability-score - min-desirability-score) <= 2) and (max-purchase-price >= asking-price * .9)) [buyer-offer = asking-price * .9] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
+  ;  [ifelse ((buyer-desperation-score <= 2) and (abs(house-desirability-score - min-desirability-score) > 2) and (max-purchase-price >= asking-price)) [buyer-offer = asking-price] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+  ;  [ifelse ((buyer-desperation-score > 2) and (abs(house-desirability-score - min-desirability-score) <= 2) and (max-purchase-price >= asking-price)) [buyer-offer = asking-price] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+  [ifelse ((buyer-desperation-score > 2) and (abs(house-desirability-score - min-desirability-score) > 2) and (max-purchase-price >= asking-price)) [set buyer-offer ( min ( list max-purchase-price (asking-price * 1.1) ))] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
+            [;INSERT ELSE CODE HERE TO EXIT THE MARKET
+]]
+;]]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

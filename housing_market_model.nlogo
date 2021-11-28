@@ -107,7 +107,7 @@ to go
   output-show ticks
   tick
 ; Buyer Logic
-  ifelse (house-desirability-score <= min-desirability-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount. NOTE: Do we drop the askng price piece? If the buyer is not desperate, they would underbid asking anyways... Ask Team...
+  ifelse (house-desirability-score <= min-desirability-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount.
   [
     set buyer-offer 0 ; This will be reset to an actual offer amount so long as the buyer's finances can support making an actual offer. Otherwise, this will be used to exit them from the market
     if ((buyer-desperation-score <= 2) and (abs(house-desirability-score - min-desirability-score) <= 2) and (max-purchase-price >= asking-price * .9)) [set buyer-offer (asking-price * .9)] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
@@ -116,7 +116,7 @@ to go
     if ((buyer-desperation-score > 2) and (abs(house-desirability-score - min-desirability-score) > 2) and (max-purchase-price >= asking-price)) [set buyer-offer ( min ( list max-purchase-price (asking-price * 1.1) ))] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
   ]
   [set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
-
+  if (buyer-offer = 0) [] ;INSERT EXIT MARKET CODE in the []
 
 end
 @#$#@#$#@

@@ -118,6 +118,8 @@ to go
   [set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
   if (buyer-offer = 0) [] ;INSERT EXIT MARKET CODE in the []
 
+  ; Seller Logic
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

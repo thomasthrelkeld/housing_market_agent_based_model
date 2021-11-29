@@ -26,7 +26,9 @@ sellers-own [
   house-desirability-score ; desirability score for the seller's house
   number-of-offers ; captures the number of offers on the seller's house
   seller-desperation-score ; denotes how desperate the seller is to sell their home.
-  ]
+  seller-max-days ; maximum number of "days" seller is willing to be on the market before they de-list their home
+  seller-current-days ; captures the number of days elapse (1 day = 1 tick) that the house has been listed
+]
 
 buyers-own [
   annual-salary ; salary for the buyer
@@ -54,9 +56,11 @@ to setup
         forward 15
         set tempUidList lput who tempUidList
         output-show ""
-        set asking-price random-normal avg-home-price 1 ;set the asking price based on the selected avg home price with normal distribution.
+    set seller-current-days 0 ; Set the number of days the house has been listed to 0
+    set asking-price random-normal avg-home-price 1 ; Set the asking price based on the selected avg home price with normal distribution.
     set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
     set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
+    set seller-max-days random-normal 75 1 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
   ]
   while [ i < population ][
       create-buyers 1[
@@ -118,8 +122,12 @@ to go
   [set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
   if (buyer-offer = 0) [] ;INSERT EXIT MARKET CODE in the []
 
-  ; Seller Logic
+; Seller Logic
+  ifelse (seller-max-days > seller-current-days)
+  [
 
+  ]
+  [] ;INSERT EXIT MARKET CODE in the []
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

@@ -32,18 +32,13 @@ buyers-own [
 
 to setup
   clear-all
-  ; set the global variables
+  layout-circle buyers 8
   set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only.
   set total-sales 0
-  let i 0
   generate-seller
-  while [ i < population ][
-    generate-buyer
-    set i i + 1
-  ]
-
-  layout-circle buyers 8
-
+  let num-buyers 0
+  set num-buyers int population
+  generate-buyer num-buyers
   ask sellers [setxy 0 0]
   reset-ticks
 end
@@ -51,24 +46,23 @@ end
 to generate-seller
   create-sellers 1[ ; only create 1 seller at a time. Once a property is sold (or expires in time) we'll re-create a new seller.
     set color 25
-    set shape "person"
-    forward 15
+    set shape "house"
     set seller-current-days 0 ; Set the number of days the house has been listed to 0
-    set asking-price int (random-normal avg-home-price avg-home-price) ; Set the asking price based on the selected avg home price with normal distribution.
+    set asking-price random-normal avg-home-price 1 ; Set the asking price based on the selected avg home price with normal distribution.
     set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
     set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
     set seller-max-days random-normal 75 1 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
- type "Asking Price: $" print asking-price
- type "House Desirability Score: " print house-desirability-score
- type  "Seller Desperation Score: " print seller-desperation-score
+    type "Asking Price: $" print asking-price
+    type "House Desirability Score: " print house-desirability-score
+    type  "Seller Desperation Score: " print seller-desperation-score
+    output-show who
   ]
 end
 
-to generate-buyer
-  create-buyers 1[
+to generate-buyer[ pop ]
+  create-buyers pop[
     set color 75
     set shape "person"
-    output-show ""
     set annual-salary int (random-normal avg-med-income avg-med-income) ; Set the buyer's annual salary based on the average median income for the area. Use random-normal to create variation in the salaries for buyers
     set gross-approved-amount annual-salary * .28 * 30 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
     set mtg-int-rate prime-int-rate + abs(random-normal 0 1 ) ; Determine the buyer's mortgage interest rate based on prime and their "credit score". Since their interest rate can never be less than prime, take abs value of amount "on top" of prime
@@ -82,102 +76,120 @@ to generate-buyer
     set buyer-desperation-score (1 + random (4)) ; Determine desperation score for the buyer to simulate how agressive they will be in their offer. Allows for psudo-random behavior of people
     type "Max Purchase Price: " show max-purchase-price
     type "Min Desirability Score: " show min-desirability-score
-    type  "Buyer Desperation Score: " show buyer-desperation-score  ]
+    type  "Buyer Desperation Score: " show buyer-desperation-score
+    output-show who
+  ]
 end
 
 to go
-  ; Buyer Logic
   let local-house-des-score 0
   let local-asking-price 0
-  ask seller 0 [
+  ask sellers [
     set local-house-des-score house-desirability-score
     set local-asking-price asking-price
   ]
-   ask buyers[
+   ask buyers [
     let local-min-des-score 0
     set local-min-des-score min-desirability-score
     ifelse (local-house-des-score <= local-min-des-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount.
-      [
-        set buyer-offer 0 ; This will be reset to an actual offer amount so long as the buyer's finances can support making an actual offer. Otherwise, this will be used to exit them from the market
-        if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * .9)) [set buyer-offer (local-asking-price * .9)] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
-        if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
-        if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
-        if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * 1.1) ))] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
-      ][set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
-    if (buyer-offer = 0) [] ;INSERT EXIT MARKET CODE in the []
+    [
+      set buyer-offer 0 ; This will be reset to an actual offer amount so long as the buyer's finances can support making an actual offer. Otherwise, this will be used to exit them from the market
+      if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * .9)) [set buyer-offer (local-asking-price * .9)] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
+      if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+      if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+      if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * 1.1) ))] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
+    ][set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
+    if (buyer-offer = 0) [
+      ;do we remove a buyer in this scenerio or just leave them in until the house sells?
+    ] ;INSERT EXIT MARKET CODE in the []
+    output-show buyer-offer
+    output-show max-purchase-price
+    output-show "----"
   ]
 
   ; Seller Logic
-  ask seller 0 [
-    let offers 0
-    let offercount 0
-    let i 0
-    ifelse (seller-max-days > seller-current-days)
-    [
+  let seller-will-exit false
+  let offers 0
+  let offercount 0
+  let i 0
+  ask sellers [
+    set seller-current-days seller-current-days + 1
+    ifelse (seller-max-days > seller-current-days) [
       set offers (sort-by > [buyer-offer] of buyers)
       if (length offers = 0)  ; No offers made for the house. Determine if the seller should alter their asking price
-      [ if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+      [
+        if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
         if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) [set asking-price asking-price * .95] ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
         if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-      ]
-      if (length offers = 1) ; One offer made for the house. Determine if its within a reasonable threshold to accept
-      [ if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
-        [ ;ACCCEPT OFFER CODE HERE
-          ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
-          ;Thomas to write code that will clear turtles and reset for the next tick
-        ]
+      ] ifelse (length offers = 1)[ ; One offer made for the house. Determine if its within a reasonable threshold to accept
+        if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
+            [ ;ACCCEPT OFFER CODE HERE
+              ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
+              set seller-will-exit true
+            ]
         if ((item 0 offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
-        [ set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
-              ]
+            [
+              set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
+            ]
         if ((item 0 offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
-        [ ;DECLINE OFFER CODE HERE
-          ; Thomas will inset this as it will be the same as a buyer [die] from above
+            [ ;DECLINE OFFER CODE HERE
+              set seller-will-exit true
+            ]
+      ][
+        ;Multiple offers made for the house. Determine if any of the offers are at or above asking price. If not, iterate through the offers starting with the best offer and work downward either accepting, countering, or declining each ofer.
+        set i 0
+        while [i < length offers][
+          if (item i offers >= asking-price) [set offercount (offercount + 1)] ; Count the number of offers at or above asking price
+          set i i + 1
         ]
-      ]
-      if (length offers > 1) ; Multiple offers made for the house. Determine if any of the offers are at or above asking price. If not, iterate through the offers starting with the best offer and work downward either accepting, countering, or declining each ofer.
-      [
-        if (offers >= asking-price) [set offercount (offercount + 1)] ; Count the number of offers at or above asking price
-
         ifelse (offercount > 1) [set asking-price item 0 offers] ; If theres more than 1 offer at or above asking price, set asking price to highesst offer and iterate another tick to emulate a bidding war
-
-        [ifelse (offercount = 1) [;ACCEPT OFFER CODE HERE ; One offer received above asking price. Accept offer
-        ]
-          [; More than one offer received, however, they're all below asking price. Iterate through the offers starting with the best offer.
-
-          set i 0
-          while [i < length offers][
-           if ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
-              [ ;ACCCEPT OFFER CODE HERE
+        [
+          ifelse (offercount = 1)
+          [
+            ;ACCEPT OFFER CODE HERE ; One offer received above asking price. Accept offer
+            set seller-will-exit true
+          ][
+            ; More than one offer received, however, they're all below asking price. Iterate through the offers starting with the best offer.
+            set i 0
+            while [i < length offers][
+              if ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
+              [
+                ;ACCCEPT OFFER CODE HERE
                 ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
-                ;Thomas to write code that will clear turtles and reset for the next tick
+                set seller-will-exit true
               ]
-           if ((item i offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
-              [ set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
+              if ((item i offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
+              [
+                set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
               ]
-           if ((item i offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
+              if ((item i offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
               [ ;DECLINE OFFER CODE HERE
-                ; Thomas will inset this as it will be the same as a buyer [die] from above
+                set seller-will-exit true
               ]
-           set i i + 1
+              set i i + 1
+            ]
           ]
-         ]
         ]
       ]
-
-
-    ]
-  [] ;INSERT EXIT MARKET CODE in the []
-    ; Thomas to write code that will clear turtles and reset for the next tick (regenerate seller and buyers.
-    ; Justin to code out creating count of houses that didn't sell and the avg asking price for houses that didn't sell
+    ][set seller-will-exit true]
+  ]
+  if seller-will-exit = true [
+    clear-turtles
+    set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only.
+    generate-buyer population
+    generate-seller
+    layout-circle buyers 8
+    ask sellers [setxy 0 0]
   ]
   tick
 end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+273
+14
+710
+452
 -1
 -1
 13.0
@@ -194,8 +206,8 @@ GRAPHICS-WINDOW
 16
 -16
 16
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -250,7 +262,7 @@ Prime-Int-Rate
 Prime-Int-Rate
 3
 19
-17.9
+10.0
 .1
 1
 APR
@@ -265,7 +277,7 @@ Avg-Home-Price
 Avg-Home-Price
 150000
 500000
-350000.0
+310000.0
 10000
 1
 $
@@ -277,7 +289,7 @@ INPUTBOX
 200
 143
 Avg-Med-Income
-69217.0
+69000.0
 1
 0
 Number
@@ -291,7 +303,7 @@ Tax-Credit
 Tax-Credit
 0
 20
-10.0
+10.1
 .1
 1
 %
@@ -306,7 +318,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-2.3
+9.63
 .01
 1
 Buyer per 1 Seller
@@ -324,54 +336,40 @@ Buyer Variables
 
 @#$#@#$#@
 ## WHAT IS IT?
-This section provides a general understanding of what the model is trying to show or explain.
-This model attempts to demonstrate how various economic factors (average medium income, interest rates, first-time buyer house credits, etc.) affect housing prices. The ratio of buyers to sellers within the market is also explored. Each factor can be varied to show its effect on the price of houses in the market. This model uses statistics of the Dallas, TX area to seed the model. The goal of the model is to be able to simulate various market scenarios to better predict when is a good time to buy or sell from a market participant’s perspective.
+
+(a general understanding of what the model is trying to show or explain)
 
 ## HOW IT WORKS
-This sections provides the rules the agents use to create the overall behavior of the model.
-This model follows a single home (with a single seller) until that home is either sold or it exits the market. When the home/seller is initialized, it is given various parameters based on user input from the Interface tab. Each home is initialized given an Asking Price and a House Desirability Score. The seller attached to the home is also given a Desperation score. Asking Price is based on a normal distribution given the average home price set by the user. House Desirability Score is a random number from 1 to 10 that dictates how desirable a house will be to potential buyers. Desperation score is a random number that determines how willing and how soon a seller is willing to accept an offer or how willing the seller may be to lower their initial asking price.
-Once the house is initialized, a random number of buyers is generated each tick that simulate people looking at the house. The frequency of buyers is determined by the buyer-to-seller ratio set by the user. Each buyer is initialized with the parameters Annual Salary, Max Purchase Price, Gross Approved Amount, Tax Credit Amount, Mortgage Interest Rate, Minimum Desirability Score, and Desperation. Annual Salary is assigned using a Normal distribution based on the Average Medium Income set by the user. Max Purchase Price is determined by an equation based on the Gross Approved Amount (a calculated value) and the Prime Interest Rate (set by the user). Gross Approved Amount is calculated by taking the buyer’s Average Annual Salary and assuming a 30 year mortgage and that they will be approved at for percentage of their Average Annual Salary over that time period. Tax Credit Amount is based on the Max Purchase Price and a percentage. Whether or not a buyer gets a tax credit is randomly assigned (this represents whether or not they are a first-time buyer). Mortgage Interest Rate is assigned based on a Normal Distribution given the Prime Interest Rate set by the user. Minimum Desirability Score is a randomly assigned number that determines the lowest desirability score of a potential house that the buyer is willing to settle for. Desperation is a randomly assigned value that determines how close to their Maximum Purchase Price a buyer is willing to spend.
-Once the house/seller and the buyers are initialized, the model operation commences. If a buyer comes across a house whose House Desirability Score that meets the Buyer’s Minimum Desirability Score AND the Asking Price is below the buyers Max Purchase Price, the Buyer submits an offer based on their desperation. A low desperation score means a buyer is more willing to submit an offer that is lower than asking price. A high desperation score means a buyer is more likely to submit an offer that is close to or even over asking price. A buyer cannot submit an offer that is greater than their maximum purchase price, and a buyer will also not submit an offer on a house that has a desirability score less than their minimum desirability score. 
-If one offer is made, the seller considers the offer. Based on the seller’s asking price and desperation score, the seller will either reject the offer, accept the offer, or submit a counter-offer (i.e. set a new asking price). A seller with a high desperation score (i.e., they are desperate) means they are more likely to settle for below asking price. A seller with a low desperation score (i.e., they are patient) means they are more likely to wait for an offer that is at or above asking price. If the seller rejects the offer or submits a counter-offer, the buyer then decides to either come up in their bidding price or to walk away.
-If more than one offer is made in a given tick, the seller considers all offers. Again, based on asking price and desperation score, the seller will either reject all offers, accept one offer, or submit counter-offers (post a new asking price). If the offers are rejected or counter-offers are made, the buyers each have the option to come up in their bidding prices or to walk away.
-Bidding continues until the house is off the market (either from being sold or from hitting a maximum time on the market value that is hard coded in the model). Once one house is off the market, a new house/seller is generated and the process continues until the simulation time runs out
+
+(what rules the agents use to create the overall behavior of the model)
 
 ## HOW TO USE IT
-This section provides a guide on how to use the model, including a description of each of the items in the Interface tab.
-To operate the model, set the sliders and user inputs to their desired setting, then hit the Setup button, then the Go button. You will observe a house/seller appear and then buyers coming and going as they appear and either make a bid (or bids) on the house or they decide to walk away. Once one house goes off the market, a new house appears, until the simulation time runs out. As houses are sold, graphs capturing average sell price and average time on market will appear to track model statistics.
-Average Medium Income is an input variable that determines the mean of a normal distribution that governs each buyer’s average annual salary. Average Medium Income is a user input from MIN_INCOME to MAX_INCOME.
-Tax-Credit is a slider that determines the percentage of a buyer’s Maximum Purchase Price they will receive as a tax credit amount. It ranges from 0% (i.e., No Tac Credits offered to anyone) to 20%.
-Prime Interest Rate is a slider that determines the mean of a normal distribution that governs each buyer’s mortgage interest rate they receive. It ranges from 3.0 APR to 19.0 APR.
-Average Home Price is a slider that determines the mean of a normal distribution that governs each seller’s starting Asking Price. It ranges from $150,000 to $500,000. 
-Buyer-Seller-Ratio is a slider that represents how “hot” the market is. It ranges from 0 buyers to sellers (no one is able to sell their homes) to 10 buyers to sellers (representing a market where there are many more buyers than there are sellers). 
+
+(how to use the model, including a description of each of the items in the Interface tab)
 
 ## THINGS TO NOTICE
-This section provides suggestions on things to notice while running the model.
-TBSL – after we run the model, we can fill this in
+
+(suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
-This section provides suggestions of things to try with the model.
-Try adjusting each input variable individually starting with Average Median Income. What happens to the average sale price and average time on market when Average Median Income is Low? In the Middle? High? 
-Try the same thing with each input variable and note what happens to average sale price and average time on market?
-Was there any one variable that had a greater impact than the rest?
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
 
 ## EXTENDING THE MODEL
-This sections provides suggestions of things to add or change in the Code tab to make the model more complicated, detailed, and accurate.
-TBSL – let’s see how much we get done
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
 ## NETLOGO FEATURES
-This section provides interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features.
-TBSL – let’s see if there are any interesting features or if there are any workarounds needed.
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
 
 ## RELATED MODELS
-This section provides models in the NetLogo Models Library and elsewhere which are of related interest.
-The idea for this model is loosely based on the Bidding Market model in the NetLogo Models Library under Sample Models\Social Science\Economics\Bidding Market. 
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
 
 ## CREDITS AND REFERENCES
-This section provides necessary credits, citations, and links.
-This model was developed for the Stevens Institute of Technology 2021F SYS 611-LTB group final project by Ashley Johnson, Justin Pierlott, Brian Tate, Thomas Threlkeld, and Christopher Yerdon. This model does not exist on the web. Citations for all background research conducted are included in the final report. 
-This modeled was developed with the aid of the NetLogo Programming Guide on Northwestern University’s Center for Connected Learning and Computer-Based Modeling (CCL) website:
-https://ccl.northwestern.edu/netlogo/docs/programming.html
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true

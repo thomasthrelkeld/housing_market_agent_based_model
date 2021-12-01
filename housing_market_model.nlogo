@@ -54,10 +54,13 @@ to generate-seller
     set shape "person"
     forward 15
     set seller-current-days 0 ; Set the number of days the house has been listed to 0
-    set asking-price random-normal avg-home-price 1 ; Set the asking price based on the selected avg home price with normal distribution.
+    set asking-price int (random-normal avg-home-price avg-home-price) ; Set the asking price based on the selected avg home price with normal distribution.
     set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
     set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
     set seller-max-days random-normal 75 1 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
+ type "Asking Price: $" print asking-price
+ type "House Desirability Score: " print house-desirability-score
+ type  "Seller Desperation Score: " print seller-desperation-score
   ]
 end
 
@@ -66,7 +69,7 @@ to generate-buyer
     set color 75
     set shape "person"
     output-show ""
-    set annual-salary (random-normal avg-med-income 1) ; Set the buyer's annual salary based on the average median income for the area. Use random-normal to create variation in the salaries for buyers
+    set annual-salary int (random-normal avg-med-income avg-med-income) ; Set the buyer's annual salary based on the average median income for the area. Use random-normal to create variation in the salaries for buyers
     set gross-approved-amount annual-salary * .28 * 30 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
     set mtg-int-rate prime-int-rate + abs(random-normal 0 1 ) ; Determine the buyer's mortgage interest rate based on prime and their "credit score". Since their interest rate can never be less than prime, take abs value of amount "on top" of prime
     ; Reduce the max purchase price based on the mortgate interest rate selected
@@ -74,10 +77,12 @@ to generate-buyer
     ; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through random 2 = 1 and applies max $15k / tax credit %.
     ifelse annual-salary > 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
         [ set tax-credit-amount (max-purchase-price * tax-credit) ][ set tax-credit-amount 0 ]
-    set max-purchase-price max-purchase-price + random 2 * (min ( list tax-credit-amount 15000 ))
+    set max-purchase-price abs int (max-purchase-price + ( random 2 * (min ( list tax-credit-amount 15000 ))))
     set min-desirability-score (1 + random (4)) ; Determine desirability score for the buyer as a random number between 1-5
     set buyer-desperation-score (1 + random (4)) ; Determine desperation score for the buyer to simulate how agressive they will be in their offer. Allows for psudo-random behavior of people
-  ]
+    type "Max Purchase Price: " show max-purchase-price
+    type "Min Desirability Score: " show min-desirability-score
+    type  "Buyer Desperation Score: " show buyer-desperation-score  ]
 end
 
 to go
@@ -216,7 +221,7 @@ Prime-Int-Rate
 Prime-Int-Rate
 3
 19
-7.9
+17.9
 .1
 1
 APR
@@ -272,7 +277,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-3.5
+2.3
 .01
 1
 Buyer per 1 Seller

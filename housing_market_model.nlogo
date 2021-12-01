@@ -104,7 +104,30 @@ to go
 
   ; Seller Logic
   ask seller 0 [
-  ifelse (seller-max-days > seller-current-days) []
+  let offers 0
+    ifelse (seller-max-days > seller-current-days)
+    [
+      set offers (sort-by > [buyer-offer] of buyers)
+      if (length offers = 0)  ; No offers made for the house. Determine if the seller should alter their asking price
+      [ if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+        if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) [set asking-price asking-price * .95] ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+        if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+      ]
+      if (length offers = 1) ; One offer made for the house. Determine if its within a reasonable threshold to accept
+      [ if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .1)))) ; Offer is within 95% of the asking price. Accept the offer
+        [ ;ACCCEPT OFFER CODE HERE
+        ]
+        if ((item 0 offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .1)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .1))))) ; Offer is within 90% of the asking price. Counter offer
+        [ ;COUNTER OFFER CODE HERE
+        ]
+        if ((item 0 offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .1))))) ; Offer is below 90% of the asking price. Decline offer
+        [ ;DECLINE OFFER CODE HERE
+        ]
+      ]
+      if (length offers > 1) ; Multiple offers made for the house. Take best offer, determine if its a resonable threshold to accept or to counter.
+      []
+
+    ]
   [] ;INSERT EXIT MARKET CODE in the []
   ]
   tick

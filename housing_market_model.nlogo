@@ -109,7 +109,9 @@ to go
 
   ; Seller Logic
   ask seller 0 [
-  let offers 0
+    let offers 0
+    let offercount 0
+    let i 0
     ifelse (seller-max-days > seller-current-days)
     [
       set offers (sort-by > [buyer-offer] of buyers)
@@ -125,16 +127,43 @@ to go
           ;Thomas to write code that will clear turtles and reset for the next tick
         ]
         if ((item 0 offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
-        [ ;COUNTER OFFER CODE HERE
-          ; Chris to write the counter offer code
-        ]
+        [ set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
+              ]
         if ((item 0 offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
         [ ;DECLINE OFFER CODE HERE
           ; Thomas will inset this as it will be the same as a buyer [die] from above
         ]
       ]
-      if (length offers > 1) ; Multiple offers made for the house. Take best offer, determine if its a resonable threshold to accept or to counter. Chris to code this up.
-      []
+      if (length offers > 1) ; Multiple offers made for the house. Determine if any of the offers are at or above asking price. If not, iterate through the offers starting with the best offer and work downward either accepting, countering, or declining each ofer.
+      [
+        if (offers >= asking-price) [set offercount (offercount + 1)] ; Count the number of offers at or above asking price
+
+        ifelse (offercount > 1) [set asking-price item 0 offers] ; If theres more than 1 offer at or above asking price, set asking price to highesst offer and iterate another tick to emulate a bidding war
+
+        [ifelse (offercount = 1) [;ACCEPT OFFER CODE HERE ; One offer received above asking price. Accept offer
+        ]
+          [; More than one offer received, however, they're all below asking price. Iterate through the offers starting with the best offer.
+
+          set i 0
+          while [i < length offers][
+           if ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
+              [ ;ACCCEPT OFFER CODE HERE
+                ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
+                ;Thomas to write code that will clear turtles and reset for the next tick
+              ]
+           if ((item i offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
+              [ set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
+              ]
+           if ((item i offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
+              [ ;DECLINE OFFER CODE HERE
+                ; Thomas will inset this as it will be the same as a buyer [die] from above
+              ]
+           set i i + 1
+          ]
+         ]
+        ]
+      ]
+
 
     ]
   [] ;INSERT EXIT MARKET CODE in the []

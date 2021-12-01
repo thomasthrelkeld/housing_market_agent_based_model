@@ -114,21 +114,27 @@ to go
         if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
       ]
       if (length offers = 1) ; One offer made for the house. Determine if its within a reasonable threshold to accept
-      [ if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .1)))) ; Offer is within 95% of the asking price. Accept the offer
+      [ if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
         [ ;ACCCEPT OFFER CODE HERE
+          ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
+          ;Thomas to write code that will clear turtles and reset for the next tick
         ]
-        if ((item 0 offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .1)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .1))))) ; Offer is within 90% of the asking price. Counter offer
+        if ((item 0 offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
         [ ;COUNTER OFFER CODE HERE
+          ; Chris to write the counter offer code
         ]
-        if ((item 0 offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .1))))) ; Offer is below 90% of the asking price. Decline offer
+        if ((item 0 offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
         [ ;DECLINE OFFER CODE HERE
+          ; Thomas will inset this as it will be the same as a buyer [die] from above
         ]
       ]
-      if (length offers > 1) ; Multiple offers made for the house. Take best offer, determine if its a resonable threshold to accept or to counter.
+      if (length offers > 1) ; Multiple offers made for the house. Take best offer, determine if its a resonable threshold to accept or to counter. Chris to code this up.
       []
 
     ]
   [] ;INSERT EXIT MARKET CODE in the []
+    ; Thomas to write code that will clear turtles and reset for the next tick (regenerate seller and buyers.
+    ; Justin to code out creating count of houses that didn't sell and the avg asking price for houses that didn't sell
   ]
   tick
 end

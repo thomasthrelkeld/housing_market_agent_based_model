@@ -97,9 +97,7 @@ to go
       if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
       if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * 1.1) )) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
     ][set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
-    if (buyer-offer = 0) [
-      ;do we remove a buyer in this scenerio or just leave them in until the house sells?
-    ] ;INSERT EXIT MARKET CODE in the []
+    if (buyer-offer = 0) [die] ;INSERT EXIT MARKET CODE in the []
   ;  output-show buyer-offer
   ;  output-show max-purchase-price
   ;  output-show "----"
@@ -114,13 +112,14 @@ to go
     set seller-current-days seller-current-days + 1
     ifelse (seller-max-days > seller-current-days) [
       set offers (sort-by > [buyer-offer] of buyers)
-
+      ;user-message length offers
       if (length offers = 0)  ; No offers made for the house. Determine if the seller should alter their asking price
       [
         if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
         if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) [set asking-price asking-price * .95] ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
         if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-      ] ifelse (length offers = 1)[ ; One offer made for the house. Determine if its within a reasonable threshold to accept
+      ]
+      ifelse (length offers = 1)[ ; One offer made for the house. Determine if its within a reasonable threshold to accept
         if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
             [ output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
               ;ACCCEPT OFFER CODE HERE

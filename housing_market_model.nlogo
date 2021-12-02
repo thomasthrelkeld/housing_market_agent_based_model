@@ -5,7 +5,11 @@ globals [
   num-properties-on-market
 
   ; these variables track data as the model runs
-  total-sales
+  total-num-sales
+  average-sale-price
+  sale-prices-list
+  average-time-on-market
+  total-num-unsold
 ]
 
 breed [ buyers buyer ]
@@ -34,7 +38,11 @@ to setup
   clear-all
   layout-circle buyers 8
   set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only.
-  set total-sales 0
+  set total-num-sales 0
+  set average-sale-price 0
+  set sale-prices-list []
+  set average-time-on-market 0
+  set total-num-unsold 0
   generate-seller
   let num-buyers 0
   set num-buyers int population
@@ -77,6 +85,14 @@ to generate-buyer[ pop ]
     output-type "Min Desirability Score: " output-show min-desirability-score
     output-type  "Buyer Desperation Score: " output-show buyer-desperation-score
   ]
+end
+
+to update-stats
+    let temp-sum-of-times-value average-time-on-market * total-num-sales
+    set total-num-sales total-num-sales + 1
+    set sale-prices-list lput buyer-offer sale-prices-list
+    set average-sale-price sum sale-prices-list / total-num-sales
+    set average-time-on-market (temp-sum-of-times-value + seller-current-days) / total-num-sales
 end
 
 to go
@@ -123,7 +139,7 @@ to go
         if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
             [ output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
               ;ACCCEPT OFFER CODE HERE
-              ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
+              update-stats
               set seller-will-exit true
             ]
         if ((item 0 offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
@@ -156,7 +172,7 @@ to go
               if ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
               [output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
                 ;ACCCEPT OFFER CODE HERE
-                ;Justin to code this out and create the metrics/graphs of avg number of days on market and avg selling price
+                update-stats
                 set seller-will-exit true
               ]
               if ((item i offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
@@ -176,6 +192,7 @@ to go
     ]
     [
       output-type  "Seller has removed the house from the market without a sale"
+      set total-num-unsold total-num-unsold + 1
       set seller-will-exit true
     ]
   ]
@@ -342,6 +359,75 @@ Buyer Variables
 11
 0.0
 1
+
+PLOT
+766
+367
+966
+517
+Time on Market
+Days
+Count
+0.0
+365.0
+0.0
+100.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+PLOT
+1009
+373
+1209
+523
+Sale Prices
+House #
+Sell Price ($)
+0.0
+10.0
+150000.0
+600000.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+MONITOR
+1233
+371
+1350
+416
+Average Sale Price
+average-sale-price
+2
+1
+11
+
+MONITOR
+1227
+430
+1375
+475
+Average Time on Market
+average-time-on-market
+17
+1
+11
+
+MONITOR
+1227
+490
+1382
+535
+Number of Unsold Houses
+total-num-unsold
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

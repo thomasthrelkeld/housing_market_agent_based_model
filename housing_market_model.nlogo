@@ -439,39 +439,70 @@ total-num-unsold
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This model attempts to demonstrate how various economic factors (average medium income, interest rates, first-time buyer house credits, etc.) affect housing prices. The ratio of buyers to sellers within the market is also explored. Each factor can be varied to show its effect on the price of houses in the market. This model uses statistics of the Dallas, TX area to seed the model. The goal of the model is to be able to simulate various market scenarios to better predict when is a good time to buy or sell from a market participant’s perspective.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+This model follows a single home (with a single seller) until that home is either sold or it exits the market. When the home/seller is initialized, it is given various parameters based on user input from the Interface tab. Each home is initialized given an Asking Price and a House Desirability Score. The seller attached to the home is also given a Desperation score. Asking Price is based on a normal distribution given the average home price set by the user. House Desirability Score is a random number from 1 to 10 that dictates how desirable a house will be to potential buyers. Desperation score is a random number that determines how willing and how soon a seller is willing to accept an offer or how willing the seller may be to lower their initial asking price.
+
+Once the house is initialized, a random number of buyers is generated each tick that simulate people looking at the house. The frequency of buyers is determined by the buyer-to-seller ratio set by the user. Each buyer is initialized with the parameters Annual Salary, Max Purchase Price, Gross Approved Amount, Tax Credit Amount, Mortgage Interest Rate, Minimum Desirability Score, and Desperation. Annual Salary is assigned using a Normal distribution based on the Average Medium Income set by the user. Max Purchase Price is determined by an equation based on the Gross Approved Amount (a calculated value) and the Prime Interest Rate (set by the user). Gross Approved Amount is calculated by taking the buyer’s Average Annual Salary and assuming a 30 year mortgage and that they will be approved at for percentage of their Average Annual Salary over that time period. Tax Credit Amount is based on the Max Purchase Price and a percentage. Whether or not a buyer gets a tax credit is randomly assigned (this represents whether or not they are a first-time buyer). Mortgage Interest Rate is assigned based on a Normal Distribution given the Prime Interest Rate set by the user. Minimum Desirability Score is a randomly assigned number that determines the lowest desirability score of a potential house that the buyer is willing to settle for. Desperation is a randomly assigned value that determines how close to their Maximum Purchase Price a buyer is willing to spend.
+
+Once the house/seller and the buyers are initialized, the model operation commences. If a buyer comes across a house whose House Desirability Score that meets the Buyer’s Minimum Desirability Score AND the Asking Price is below the buyers Max Purchase Price, the Buyer submits an offer based on their desperation. A low desperation score means a buyer is more willing to submit an offer that is lower than asking price. A high desperation score means a buyer is more likely to submit an offer that is close to or even over asking price. A buyer cannot submit an offer that is greater than their maximum purchase price, and a buyer will also not submit an offer on a house that has a desirability score less than their minimum desirability score. 
+
+If one offer is made, the seller considers the offer. Based on the seller’s asking price and desperation score, the seller will either reject the offer, accept the offer, or submit a counter-offer (i.e. set a new asking price). A seller with a high desperation score (i.e., they are desperate) means they are more likely to settle for below asking price. A seller with a low desperation score (i.e., they are patient) means they are more likely to wait for an offer that is at or above asking price. If the seller rejects the offer or submits a counter-offer, the buyer then decides to either come up in their bidding price or to walk away.
+
+If more than one offer is made in a given tick, the seller considers all offers. Again, based on asking price and desperation score, the seller will either reject all offers, accept one offer, or submit counter-offers (post a new asking price). If the offers are rejected or counter-offers are made, the buyers each have the option to come up in their bidding prices or to walk away.
+Bidding continues until the house is off the market (either from being sold or from hitting a maximum time on the market value that is hard coded in the model). Once one house is off the market, a new house/seller is generated and the process continues until the simulation time runs out. 
+
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+To operate the model, set the sliders and user inputs to their desired setting, then hit the Setup button, then the Go button. You will observe a house/seller appear and then buyers coming and going as they appear and either make a bid (or bids) on the house or they decide to walk away. Once one house goes off the market, a new house appears, until the simulation time runs out. As houses are sold, graphs capturing average sell price and average time on market will appear to track model statistics.
+
+Average Medium Income is an input variable that determines the mean of a normal distribution that governs each buyer’s average annual salary. Average Medium Income is a user input from MIN_INCOME to MAX_INCOME.
+
+Tax-Credit is a slider that determines the percentage of a buyer’s Maximum Purchase Price they will receive as a tax credit amount. It ranges from 0% (i.e., No Tac Credits offered to anyone) to 20%.
+
+Prime Interest Rate is a slider that determines the mean of a normal distribution that governs each buyer’s mortgage interest rate they receive. It ranges from 3.0 APR to 19.0 APR.
+
+Average Home Price is a slider that determines the mean of a normal distribution that governs each seller’s starting Asking Price. It ranges from $150,000 to $500,000. 
+
+Buyer-Seller-Ratio is a slider that represents how “hot” the market is. It ranges from 0 buyers to sellers (no one is able to sell their homes) to 10 buyers to sellers (representing a market where there are many more buyers than there are sellers). 
+
 
 ## THINGS TO NOTICE
 
 (suggested things for the user to notice while running the model)
+TBSL – after we run the model, we can fill this in
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Try adjusting each input variable individually starting with Average Median Income. What happens to the average sale price and average time on market when Average Median Income is Low? In the Middle? High? 
+Try the same thing with each input variable and note what happens to average sale price and average time on market?
+Was there any one variable that had a greater impact than the rest?
+
 
 ## EXTENDING THE MODEL
 
 (suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+TBSL – let’s see how much we get done
 
 ## NETLOGO FEATURES
 
 (interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+TBSL – let’s see if there are any interesting features or if there are any workarounds needed.
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+The idea for this model is loosely based on the Bidding Market model in the NetLogo Models Library under Sample Models\Social Science\Economics\Bidding Market. 
+
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+This model was developed for the Stevens Institute of Technology 2021F SYS 611-LTB group final project by Ashley Johnson, Justin Pierlott, Brian Tate, Thomas Threlkeld, and Christopher Yerdon. This model does not exist on the web. Citations for all background research conducted are included in the final report. 
+
+This modeled was developed with the aid of the NetLogo Programming Guide on Northwestern University’s Center for Connected Learning and Computer-Based Modeling (CCL) website:
+https://ccl.northwestern.edu/netlogo/docs/programming.html
 @#$#@#$#@
 default
 true

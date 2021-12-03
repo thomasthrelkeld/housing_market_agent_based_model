@@ -10,6 +10,7 @@ globals [
   sale-prices-list
   average-time-on-market
   total-num-unsold
+  accepted-offer-amount
 ]
 
 breed [ buyers buyer ]
@@ -43,6 +44,7 @@ to setup
   set sale-prices-list []
   set average-time-on-market 0
   set total-num-unsold 0
+  set accepted-offer-amount 0
   generate-seller
   let num-buyers 0
   set num-buyers int population
@@ -89,9 +91,10 @@ end
 
 to update-stats
     let temp-sum-of-times-value average-time-on-market * total-num-sales
+    let temp-sales-sum average-sale-price * total-num-sales
     set total-num-sales total-num-sales + 1
-    set sale-prices-list lput buyer-offer sale-prices-list
-    set average-sale-price sum sale-prices-list / total-num-sales
+    ;set sale-prices-list lput accepted-offer-amount sale-prices-list
+    set average-sale-price (temp-sales-sum + accepted-offer-amount) / total-num-sales
     set average-time-on-market (temp-sum-of-times-value + seller-current-days) / total-num-sales
 end
 
@@ -139,6 +142,7 @@ to go
         if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
             [ output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
               ;ACCCEPT OFFER CODE HERE
+              set accepted-offer-amount item 0 offers
               update-stats
               set seller-will-exit true
             ]
@@ -164,6 +168,8 @@ to go
           ifelse (offercount = 1)
           [output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
             ;ACCEPT OFFER CODE HERE ; One offer received above asking price. Accept offer
+            set accepted-offer-amount item 0 offers
+            update-stats
             set seller-will-exit true
           ][
             ; More than one offer received, however, they're all below asking price. Iterate through the offers starting with the best offer.
@@ -172,6 +178,7 @@ to go
               if ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
               [output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
                 ;ACCCEPT OFFER CODE HERE
+                set accepted-offer-amount item 0 offers
                 update-stats
                 set seller-will-exit true
               ]
@@ -288,7 +295,7 @@ Prime-Int-Rate
 Prime-Int-Rate
 3
 19
-10.0
+6.0
 .1
 1
 APR
@@ -303,7 +310,7 @@ Avg-Home-Price
 Avg-Home-Price
 150000
 500000
-310000.0
+300000.0
 10000
 1
 $
@@ -315,7 +322,7 @@ INPUTBOX
 200
 143
 Avg-Med-Income
-69000.0
+300000.0
 1
 0
 Number
@@ -344,7 +351,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-9.63
+2.0
 .01
 1
 Buyer per 1 Seller
@@ -376,7 +383,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot ask sellers [seller-current-days]"
 
 PLOT
 1009
@@ -394,7 +401,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot ask turtles [sale-prices-list]"
 
 MONITOR
 1233

@@ -58,7 +58,7 @@ to generate-seller
     set color 25
     set shape "house"
     set seller-current-days 0 ; Set the number of days the house has been listed to 0
-    set asking-price random-normal avg-home-price 1 ; Set the asking price based on the selected avg home price with normal distribution.
+    set asking-price abs random-normal avg-home-price (avg-home-price / 2) ; Set the asking price based on the selected avg home price with normal distribution.
     set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
     set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
     set seller-max-days random-normal 75 1 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
@@ -185,11 +185,12 @@ to go
               if ((item i offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
               [
                 set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
+              output-type  "Seller counter-offered with a price of $" output-print asking-price
               ]
               if ((item i offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
               [ output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
                 ;DECLINE OFFER CODE HERE
-                set seller-will-exit true
+                set seller-will-exit false
               ]
               set i i + 1
             ]
@@ -198,7 +199,7 @@ to go
       ]
     ]
     [
-      output-type  "Seller has removed the house from the market without a sale"
+      output-type  "Seller has delisted the house after " output-type seller-max-days output-print " on the market without sale."
       set total-num-unsold total-num-unsold + 1
       set seller-will-exit true
     ]
@@ -310,7 +311,7 @@ Avg-Home-Price
 Avg-Home-Price
 150000
 500000
-300000.0
+380000.0
 10000
 1
 $

@@ -97,7 +97,7 @@ to update-stats
     let temp-sum-of-times-value average-time-on-market * total-num-sales
     let temp-sales-sum average-sale-price * total-num-sales
     set total-num-sales total-num-sales + 1
-    ;set sale-prices-list lput accepted-offer-amount sale-prices-list
+    set sale-prices-list lput accepted-offer-amount sale-prices-list
     set average-sale-price (temp-sales-sum + accepted-offer-amount) / total-num-sales
     set average-time-on-market (temp-sum-of-times-value + seller-current-days) / total-num-sales
 end
@@ -383,17 +383,17 @@ PLOT
 966
 517
 Time on Market
+Tick #
 Days
-Count
-0.0
-365.0
 0.0
 100.0
+0.0
+75.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot ask sellers [seller-current-days]"
+"default" 1.0 0 -16777216 true "" "ask sellers[\nplot seller-current-days\n]"
 
 PLOT
 1009
@@ -401,7 +401,7 @@ PLOT
 1209
 523
 Sale Prices
-House #
+Tick #
 Sell Price ($)
 0.0
 10.0
@@ -411,7 +411,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot ask turtles [sale-prices-list]"
+"default" 1.0 0 -16777216 true "" "plot item (total-num-sales - 1) sale-prices-list\n\n\n"
 
 MONITOR
 1233

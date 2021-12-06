@@ -108,7 +108,7 @@ to go
    ask buyers [
     let local-min-des-score 0
     set local-min-des-score min-desirability-score
-    ifelse (local-house-des-score <= local-min-des-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount.
+    ifelse (local-house-des-score >= local-min-des-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount.
     [
       set buyer-offer 0 ; This will be reset to an actual offer amount so long as the buyer's finances can support making an actual offer. Otherwise, this will be used to exit them from the market
       if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * .9)) [set buyer-offer (local-asking-price * .9) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer ] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max

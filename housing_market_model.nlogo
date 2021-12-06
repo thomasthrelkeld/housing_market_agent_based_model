@@ -45,6 +45,8 @@ to setup
   set average-time-on-market 0
   set total-num-unsold 0
   set accepted-offer-amount 0
+  type "Begin Sale #" print total-num-sales
+    output-type "Begin Sale #" output-print total-num-sales
   generate-seller
   let num-buyers 0
   set num-buyers int population
@@ -62,9 +64,9 @@ to generate-seller
     set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
     set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
     set seller-max-days random-normal 75 1 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
-    output-type "Initial Asking Price: $" output-print int asking-price
-    output-type "House Desirability Score: " output-print house-desirability-score
-    output-type  "Seller Desperation Score: " output-print seller-desperation-score
+    type "Initial Asking Price: $" print int asking-price
+    type "House Desirability Score: " print house-desirability-score
+    type  "Seller Desperation Score: " print seller-desperation-score
   ]
 end
 
@@ -83,9 +85,9 @@ to generate-buyer[ pop ]
     set max-purchase-price abs int (max-purchase-price + ( random 2 * (min ( list tax-credit-amount 15000 ))))
     set min-desirability-score (1 + random (4)) ; Determine desirability score for the buyer as a random number between 1-5
     set buyer-desperation-score (1 + random (4)) ; Determine desperation score for the buyer to simulate how agressive they will be in their offer. Allows for psudo-random behavior of people
-    output-type "Max Purchase Price: " output-show int max-purchase-price
-    output-type "Min Desirability Score: " output-show min-desirability-score
-    output-type  "Buyer Desperation Score: " output-show buyer-desperation-score
+    type "Max Purchase Price: " show int max-purchase-price
+    type "Min Desirability Score: " show min-desirability-score
+    type  "Buyer Desperation Score: " show buyer-desperation-score
   ]
 end
 
@@ -118,8 +120,8 @@ to go
     ][set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
     if (buyer-offer = 0)
     [
-      die
       output-type  "Buyer " output-type who output-print " has left the market."
+      die
     ]
 
   ]
@@ -174,7 +176,6 @@ to go
                ]
                [; Offer is below the acceptable threshold to entertain the offer. Decline offer
                 output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
-                ;DECLINE OFFER CODE HERE
                 set seller-will-exit false
                ]
               ]
@@ -199,7 +200,11 @@ to go
     output-print ""
     output-print ""
     output-print ""
-    output-print "New House For Sale!"
+    output-type "Begin Sale #" output-print total-num-sales
+    print ""
+    print ""
+    print ""
+    type "Begin Sale #" print total-num-sales
     set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only.
     generate-seller
     generate-buyer population

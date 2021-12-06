@@ -111,94 +111,84 @@ to go
     ifelse (local-house-des-score >= local-min-des-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount.
     [
       set buyer-offer 0 ; This will be reset to an actual offer amount so long as the buyer's finances can support making an actual offer. Otherwise, this will be used to exit them from the market
-      if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * (.8 + random (.1)))) [set buyer-offer (local-asking-price * (.8 + random (.1))) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer ] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
+      if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * (.9))) [set buyer-offer (local-asking-price * (.8 + random (.1))) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer ] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
       if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
       if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
       if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * (1 + random (.1))) )) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
     ][set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
-    if (buyer-offer = 0) [die] ;INSERT EXIT MARKET CODE in the []
-  ;  output-show buyer-offer
-  ;  output-show max-purchase-price
-  ;  output-show "----"
+    if (buyer-offer = 0)
+    [
+      die
+      output-type  "Buyer " output-type who output-print " has left the market."
+    ]
+
   ]
 
   ; Seller Logic
   let seller-will-exit false
   let offers 0
+  let starting-asking-price 0
   let offercount 0
   let i 0
   ask sellers [
     set seller-current-days seller-current-days + 1
     ifelse (seller-max-days > seller-current-days) [
       set offers (sort-by > [buyer-offer] of buyers)
-      ;user-message length offers
-      if (length offers = 0)  ; No offers made for the house. Determine if the seller should alter their asking price
+      set starting-asking-price asking-price
+
+; Evaluate offers and determine what to do with them...
+      set i 0
+        while [i < length offers]
       [
-        if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-        if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) [set asking-price asking-price * .95] ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-        if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-      ]
-      ifelse (length offers = 1)[ ; One offer made for the house. Determine if its within a reasonable threshold to accept
-        if ((item 0 offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
-            [ output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
-              ;ACCCEPT OFFER CODE HERE
-              set accepted-offer-amount item 0 offers
-              update-stats
-              set seller-will-exit true
-            ]
-        if ((item 0 offers) >= (asking-price * (1 - ( 5 * (seller-desperation-score * .01)))) and ((item 0 offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
-            [
-              set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
-              output-type  "Seller counter-offered with a price of $" output-print asking-price
-        ]
-        if ((item 0 offers) < (asking-price * (1 - ( 5 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
-            [ output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
-              ;DECLINE OFFER CODE HERE
-              set seller-will-exit false
-            ]
-      ][
-        ;Multiple offers made for the house. Determine if any of the offers are at or above asking price. If not, iterate through the offers starting with the best offer and work downward either accepting, countering, or declining each ofer.
-        set i 0
-        while [i < length offers][
-          if (item i offers > asking-price) [set offercount (offercount + 1)] ; Count the number of offers at or above asking price
+          if (item i offers > asking-price) [set offercount (offercount + 1)] ; Count the number of offers above asking price
           set i i + 1
-        ]
-        ifelse (offercount > 1) [set asking-price item 0 offers] ; If theres more than 1 offer at or above asking price, set asking price to highesst offer and iterate another tick to emulate a bidding war
+      ]
+
+      ifelse (offercount > 1)  ; Theres more than 1 offer above asking price. Set asking price to highest offer and iterate another tick to emulate a bidding war
+      [ set asking-price item 0 offers
+        output-print  "Multiple offers over asking price received! We've got a bidding war!"
+      ]
+      [    ifelse (offercount = 1)
         [
-          ifelse (offercount = 1)
-          [output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
-            ;ACCEPT OFFER CODE HERE ; One offer received above asking price. Accept offer
+            output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
             set accepted-offer-amount item 0 offers
             update-stats
             set seller-will-exit true
-          ][
-            ; More than one offer received, however, they're all below asking price. Iterate through the offers starting with the best offer.
+        ]
+        [; More than one offer received, however, they're all below asking price. Iterate through the offers starting with the best offer.
             set i 0
-            while [i < length offers][
-              if ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
-              [output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
-                ;ACCCEPT OFFER CODE HERE
+            while [(i < length offers) and (seller-will-exit = false)]
+          [
+              ifelse ((item i offers) >= (asking-price * (1 - (seller-desperation-score * .01)))) ; Offer is within the necessary threshold of the asking price to accept. Accept the offer
+              [
+                output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
                 set accepted-offer-amount item 0 offers
                 update-stats
                 set seller-will-exit true
               ]
-              if ((item i offers) >= (asking-price * (1 - ( 2 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
               [
+                ifelse ((item i offers) >= (asking-price * (1 - ( 5 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within the necessary threshold of the asking price to counter.
+               [
                 set asking-price (asking-price - ((asking-price - item i offers) / 2)) ; Split the difference between the offer and asking price as a counter. Very common approach for dickering.
-              output-type  "Seller counter-offered with a price of $" output-print asking-price
-              ]
-              if ((item i offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
-              [ output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
+                output-type  "Seller counter-offered with a price of $" output-print int asking-price
+               ]
+               [; Offer is below the acceptable threshold to entertain the offer. Decline offer
+                output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
                 ;DECLINE OFFER CODE HERE
                 set seller-will-exit false
+               ]
               ]
-              set i i + 1
-            ]
+            set i i + 1
           ]
         ]
       ]
-    ]
-    [
+      if ((seller-will-exit = false) and (asking-price = starting-asking-price))[ ;Seller didn't accept an offer and the asking price wasn't adjusted due to counter offer or bidding war. Evaluate whether the seller should start reducing price.
+        if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+        if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) [set asking-price asking-price * .95] ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+        if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+      ]
+      ]
+     [
       output-type  "Seller has delisted the house after " output-type int seller-max-days output-print " on the market without sale."
       set total-num-unsold total-num-unsold + 1
       set seller-will-exit true
@@ -218,6 +208,7 @@ to go
   ][
     set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only
     generate-buyer population
+    layout-circle buyers 8
   ]
   tick
 end

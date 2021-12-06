@@ -17,7 +17,8 @@ breed [ buyers buyer ]
 breed [ sellers seller ]
 
 sellers-own [
-  initial-asking-price   ; what the asking price for the house is before any reductions in price, bidding wars, or counter offers
+  min-asking-price   ; what the min asking price for the house the seller would ever consider. Forms exit criteria where the seller would delist
+  initial-asking-price   ; what the initial asking price for the house
   asking-price   ; what the asking price for the house is
   house-desirability-score ; desirability score for the seller's house
   number-of-offers ; captures the number of offers on the seller's house
@@ -64,7 +65,9 @@ to generate-seller
     set asking-price abs random-normal avg-home-price (avg-home-price / 2) ; Set the asking price based on the selected avg home price with normal distribution.
     set house-desirability-score (1 + random (4)) ; Determine desirability score for the seller's house as a random number between 1-5
     set seller-desperation-score (1 + random (4)) ; Determine desperation score for the seller to simulate how agressive they will be in making a sale occur. Allows for psudo-random behavior of people
-    set seller-max-days abs random-normal 75 50 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
+    set seller-max-days abs random-normal 75 30 ; Average duration of a home listing where the home is delisted per Realtor.com is 75 days. Create a normal distribution for this
+    set initial-asking-price asking-price
+    set min-asking-price asking-price * (.7 + random-float .3)
     output-type "Initial Asking Price: $" output-print int asking-price
     type "Initial Asking Price: $" print int asking-price
     type "House Desirability Score: " print house-desirability-score
@@ -105,9 +108,11 @@ end
 to go
   let local-house-des-score 0
   let local-asking-price 0
+  let local-initial-asking-price 0
   ask sellers [
     set local-house-des-score house-desirability-score
     set local-asking-price asking-price
+    set local-initial-asking-price initial-asking-price
   ]
    ask buyers [
     let local-min-des-score 0
@@ -115,10 +120,19 @@ to go
     ifelse (local-house-des-score >= local-min-des-score) ; House meets their requirements (captured by the desirability score). Proceed to determine offer amount.
     [
       set buyer-offer 0 ; This will be reset to an actual offer amount so long as the buyer's finances can support making an actual offer. Otherwise, this will be used to exit them from the market
-      if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * (.85 + random-float (.1)))) [set buyer-offer (local-asking-price * (.8 + random (.1))) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer ] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
-      if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
-      if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
-      if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * (1.05 + random-float (.1))) )) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
+      ifelse (local-asking-price <= local-initial-asking-price) ; Check that we're not in a bidding war.
+      [ ;Not in a bidding war. Use standard logic for offers
+        if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * (.85 + random-float (.1)))) [set buyer-offer (local-asking-price * (.85 + random-float (.1))) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer ] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
+        if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+        if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer local-asking-price output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+        if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * (1.05 + random-float (.1))) )) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
+      ]
+      [ ;In a bidding war. Adjust logic to peeter out offers after a reasonable threshold above asking price (preceived to be market value)
+        if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price * (.85 + random-float (.1)))) [set buyer-offer (local-asking-price * (.85 + random-float (.1))) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer ] ; Low Desperation and Low desirability delta means buyer will not be overly-estatic and offer (min) of 10% under asking or their max
+        if ((buyer-desperation-score <= 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer (local-asking-price) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; Low Desperation and high desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+        if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) <= 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer (local-asking-price) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and low desirability delta means buyer will be motivated to get the house and will offer (min) of asking or their max
+        if ((buyer-desperation-score > 2) and (abs(local-house-des-score - min-desirability-score) > 2) and (max-purchase-price >= local-asking-price)) [set buyer-offer ( min ( list max-purchase-price (local-asking-price * (1.0 + random-float (.1)) * (local-initial-asking-price / (local-asking-price))) )) output-type  "Buyer " output-type who output-type " made an offer of $" output-print int buyer-offer] ; High Desperation and high desirability delta means buyer will be very motivated to get the house and will offer (min) of 10% over asking or their max
+      ]
     ][set buyer-offer 0] ; House doesn't meet their desirability score; set offer to 0 even if they could financially support an offer
     if (buyer-offer = 0)
     [
@@ -136,7 +150,7 @@ to go
   let i 0
   ask sellers [
     set seller-current-days seller-current-days + 1
-    ifelse (seller-max-days > seller-current-days) [
+    ifelse ((seller-max-days > seller-current-days) and (asking-price > min-asking-price)) [
       set offers (sort-by > [buyer-offer] of buyers)
       set starting-asking-price asking-price
 
@@ -185,7 +199,7 @@ to go
 
                ]
                [; Offer is below the acceptable threshold to entertain the offer. Decline offer
-                output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
+                output-type  "Offer of $" output-type int item i offers output-print " declined by seller"
                 set seller-will-exit false
                ]
               ]
@@ -200,7 +214,8 @@ to go
       ]
       ]
      [
-      output-type  "Seller has delisted the house after " output-type int seller-max-days output-print " days on the market without sale."
+      if (seller-max-days <= seller-current-days) [output-type  "Seller has delisted the house after " output-type int seller-max-days output-print " days on the market without sale."]
+      if (asking-price < min-asking-price) [output-type  "Seller has delisted the house from not receiving any offers above the minimum price they would consider of $" output-print int min-asking-price]
       set total-num-unsold total-num-unsold + 1
       set seller-will-exit true
     ]
@@ -346,7 +361,7 @@ Tax-Credit
 Tax-Credit
 0
 20
-10.1
+10.0
 .1
 1
 %
@@ -361,7 +376,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-0.08
+0.0
 .01
 1
 Buyer per 1 Seller

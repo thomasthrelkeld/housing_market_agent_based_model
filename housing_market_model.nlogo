@@ -154,7 +154,7 @@ to go
         if ((item 0 offers) < (asking-price * (1 - ( 2 * (seller-desperation-score * .01))))) ; Offer is below the acceptable threshold to entertain the offer. Decline offer
             [ output-type  "Offer of $" output-type int item 0 offers output-print " declined by seller"
               ;DECLINE OFFER CODE HERE
-              set seller-will-exit true
+              set seller-will-exit false
             ]
       ][
         ;Multiple offers made for the house. Determine if any of the offers are at or above asking price. If not, iterate through the offers starting with the best offer and work downward either accepting, countering, or declining each ofer.
@@ -199,7 +199,7 @@ to go
       ]
     ]
     [
-      output-type  "Seller has delisted the house after " output-type seller-max-days output-print " on the market without sale."
+      output-type  "Seller has delisted the house after " output-type int seller-max-days output-print " on the market without sale."
       set total-num-unsold total-num-unsold + 1
       set seller-will-exit true
     ]
@@ -323,7 +323,7 @@ INPUTBOX
 200
 143
 Avg-Med-Income
-300000.0
+70000.0
 1
 0
 Number

@@ -204,7 +204,7 @@ to go
       set seller-will-exit true
     ]
   ]
-  if seller-will-exit = true [
+  ifelse seller-will-exit = true [
     clear-turtles
     output-print ""
     output-print ""
@@ -215,6 +215,9 @@ to go
     generate-buyer population
     layout-circle buyers 8
     ask sellers [setxy 0 0]
+  ][
+    set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only
+    generate-buyer population
   ]
   tick
 end

@@ -107,7 +107,7 @@ end
 
 to update-stats
     set total-num-sales total-num-sales + 1
-    set sale-prices-list-histo lput (10000 * round((accepted-offer-amount / 10000))) sale-prices-list-histo
+    set sale-prices-list-histo lput (20000 * round((accepted-offer-amount / 20000))) sale-prices-list-histo
     set sale-prices-list lput accepted-offer-amount sale-prices-list
     let temp-sum-of-times-value average-time-on-market * total-num-sales
     let temp-sales-sum average-sale-price * total-num-sales
@@ -264,6 +264,7 @@ to go
       if (asking-price < min-asking-price) [output-type  "Seller has delisted the house from not receiving any offers above the minimum price they would consider of $" output-print int min-asking-price]
       set total-num-unsold total-num-unsold + 1
       set seller-will-exit true
+      set time-on-market-list lput seller-current-days time-on-market-list ; Include Unsold homes in the number of days on market statistic only.
     ]
   ]
   ifelse seller-will-exit = true [
@@ -296,7 +297,7 @@ GRAPHICS-WINDOW
 518
 -1
 -1
-15.121212121212123
+12.7
 1
 10
 1
@@ -381,7 +382,7 @@ Avg-Home-Price
 Avg-Home-Price
 150000
 500000
-420000.0
+240000.0
 10000
 1
 $
@@ -393,7 +394,7 @@ INPUTBOX
 231
 143
 Avg-Med-Income
-45000.0
+63000.0
 1
 0
 Number
@@ -407,7 +408,7 @@ Tax-Credit
 Tax-Credit
 0
 20
-10.0
+0.0
 .1
 1
 %
@@ -422,7 +423,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-4.05
+4.0
 .01
 1
 Buyer per 1 Seller
@@ -443,7 +444,7 @@ PLOT
 312
 1027
 513
-Time on Market
+Time on Market (Sold and Unsold)
 Days
 Qty
 0.0
@@ -452,7 +453,7 @@ Qty
 20.0
 true
 false
-"" ""
+"" "set-plot-x-range 0 max ( lput 1 time-on-market-list)"
 PENS
 "default" 1.0 1 -16777216 true "" "histogram time-on-market-list"
 
@@ -470,9 +471,9 @@ Qty
 10.0
 true
 false
-"" ""
+"" "set-plot-x-range int min ( lput 0 sale-prices-list-histo) int max ( lput 1 sale-prices-list-histo)"
 PENS
-"default" 1.0 1 -16777216 true "" "histogram sale-prices-list\n\n\n"
+"default" 20000.0 1 -16777216 true "" "histogram sale-prices-list-histo\n\n\n"
 
 MONITOR
 1271
@@ -488,9 +489,9 @@ mean sale-prices-list
 MONITOR
 1271
 360
-1419
+1421
 405
-Average Time on Market
+Avg Time on Mkt (Sold & Unsold)
 mean (time-on-market-list)
 3
 1

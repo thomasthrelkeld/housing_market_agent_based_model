@@ -9,8 +9,10 @@ globals [
   average-sale-price
   sale-prices-list
   average-time-on-market
+  time-on-market-list
   total-num-unsold
   accepted-offer-amount
+
 ]
 
 breed [ buyers buyer ]
@@ -25,6 +27,7 @@ sellers-own [
   seller-desperation-score ; denotes how desperate the seller is to sell their home.
   seller-max-days ; maximum number of "days" seller is willing to be on the market before they de-list their home
   seller-current-days ; captures the number of days elapse (1 day = 1 tick) that the house has been listed
+  sale-price;
 ]
 buyers-own [
   annual-salary ; salary for the buyer
@@ -46,6 +49,7 @@ to setup
   set average-sale-price 0
   set sale-prices-list []
   set average-time-on-market 0
+  set time-on-market-list []
   set total-num-unsold 0
   set accepted-offer-amount 0
   type "Begin Sale #" print total-num-sales
@@ -99,10 +103,12 @@ to generate-buyer[ pop ]
 end
 
 to update-stats
+    set total-num-sales total-num-sales + 1
+    set sale-prices-list lput (10000 * round((accepted-offer-amount / 10000))) sale-prices-list
     let temp-sum-of-times-value average-time-on-market * total-num-sales
     let temp-sales-sum average-sale-price * total-num-sales
-    set total-num-sales total-num-sales + 1
-    set sale-prices-list lput accepted-offer-amount sale-prices-list
+    set time-on-market-list lput seller-current-days time-on-market-list
+
     set average-sale-price (temp-sales-sum + accepted-offer-amount) / total-num-sales
     set average-time-on-market (temp-sum-of-times-value + seller-current-days) / total-num-sales
 end
@@ -192,6 +198,7 @@ to go
         [
             output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
             set accepted-offer-amount item 0 offers
+            set sale-price item 0 offers
             update-stats
             set seller-will-exit true
         ]
@@ -203,6 +210,7 @@ to go
               [
                 output-type  "Offer of $" output-type int item 0 offers output-print " accepted by seller"
                 set accepted-offer-amount item 0 offers
+                set sale-price item 0 offers
                 update-stats
                 set seller-will-exit true
               ]
@@ -398,7 +406,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-10.0
+0.0
 .01
 1
 Buyer per 1 Seller
@@ -420,17 +428,17 @@ PLOT
 966
 517
 Time on Market
-Tick #
 Days
-0.0
-100.0
+Qty
 0.0
 75.0
+0.0
+20.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask sellers[\nplot seller-current-days\n]"
+"default" 1.0 1 -16777216 true "" "histogram time-on-market-list"
 
 PLOT
 1009
@@ -438,17 +446,17 @@ PLOT
 1209
 523
 Sale Prices
-Tick #
 Sell Price ($)
-0.0
-10.0
+Qty
 150000.0
 600000.0
+0.0
+100.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot item (total-num-sales - 1) sale-prices-list\n\n\n"
+"default" 1.0 1 -16777216 true "" "histogram sale-prices-list\n\n\n"
 
 MONITOR
 1233
@@ -468,7 +476,7 @@ MONITOR
 475
 Average Time on Market
 average-time-on-market
-17
+3
 1
 11
 

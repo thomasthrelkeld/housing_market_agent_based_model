@@ -54,8 +54,8 @@ to setup
   set time-on-market-list []
   set total-num-unsold 0
   set accepted-offer-amount 0
-  type "Begin Sale #" print total-num-sales
-    output-type "Begin Sale #" output-print total-num-sales
+  type "Begin Sale #" print (total-num-sales + total-num-unsold)
+    output-type "Begin Sale #" output-print (total-num-sales + total-num-unsold)
   generate-seller
   let num-buyers 0
   set num-buyers int population
@@ -77,6 +77,7 @@ to generate-seller
     set min-asking-price asking-price * (.7 + random-float .3)
     output-type "Initial Asking Price: $" output-print int asking-price
     type "Initial Asking Price: $" print int asking-price
+    type "Seller Minimum Price: $" print int min-asking-price
     type "House Desirability Score: " print house-desirability-score
     type  "Seller Desperation Score: " print seller-desperation-score
   ]
@@ -181,7 +182,7 @@ to go
   let i 0
   ask sellers [
     set seller-current-days seller-current-days + 1
-    ifelse ((seller-max-days > seller-current-days) and (asking-price > min-asking-price)) [
+    ifelse ((seller-max-days > seller-current-days) and (asking-price >= min-asking-price)) [
       set offers (sort-by > [buyer-offer] of buyers)
       set starting-asking-price asking-price
 
@@ -243,17 +244,17 @@ to go
       if ((seller-will-exit = false) and (asking-price = starting-asking-price))[ ;Seller didn't accept an offer and the asking price wasn't adjusted due to counter offer or bidding war. Evaluate whether the seller should start reducing price.
         if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2))  ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate.
         [
-          set asking-price asking-price * .95
+          set asking-price asking-price * .995
           if (asking-price >= min-asking-price) [output-type  "Seller reduced the asking price to $" output-print int asking-price]
         ]
         if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate.
         [
-          set asking-price asking-price * .95
+          set asking-price asking-price * .995
           if (asking-price >= min-asking-price) [output-type  "Seller reduced the asking price to $" output-print int asking-price]
         ]
         if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate.
         [
-          set asking-price asking-price * .95
+          set asking-price asking-price * .995
           if (asking-price >= min-asking-price) [output-type  "Seller reduced the asking price to $" output-print int asking-price]
         ]
       ]
@@ -270,11 +271,11 @@ to go
     output-print ""
     output-print ""
     output-print ""
-    output-type "Begin Sale #" output-print total-num-sales
+    output-type "Begin Sale #" output-print (total-num-sales + total-num-unsold)
     print ""
     print ""
     print ""
-    type "Begin Sale #" print total-num-sales
+    type "Begin Sale #" print (total-num-sales + total-num-unsold)
     set population abs((round(random-normal  buyer-seller-ratio 1))) ; Create a random number of buyers with a standard distribution centered around the buyer/seller ratio chosen on the UI. Can't have negative buyers so also make integer value only.
     generate-seller
     generate-buyer population
@@ -336,7 +337,7 @@ OUTPUT
 806
 14
 1424
-335
+292
 11
 
 BUTTON
@@ -380,7 +381,7 @@ Avg-Home-Price
 Avg-Home-Price
 150000
 500000
-350000.0
+420000.0
 10000
 1
 $
@@ -392,7 +393,7 @@ INPUTBOX
 231
 143
 Avg-Med-Income
-70000.0
+45000.0
 1
 0
 Number
@@ -421,7 +422,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-0.0
+4.05
 .01
 1
 Buyer per 1 Seller
@@ -439,7 +440,7 @@ Buyer Variables
 
 PLOT
 806
-349
+312
 1027
 513
 Time on Market
@@ -457,9 +458,9 @@ PENS
 
 PLOT
 1040
-348
+311
 1259
-511
+516
 Sale Prices
 Sell Price ($)
 Qty
@@ -474,10 +475,10 @@ PENS
 "default" 1.0 1 -16777216 true "" "histogram sale-prices-list\n\n\n"
 
 MONITOR
-1274
-350
-1423
-395
+1271
+309
+1420
+354
 Average Sale Price
 mean sale-prices-list
 2
@@ -485,10 +486,10 @@ mean sale-prices-list
 11
 
 MONITOR
-1274
-409
-1422
-454
+1271
+360
+1419
+405
 Average Time on Market
 mean (time-on-market-list)
 3
@@ -496,13 +497,24 @@ mean (time-on-market-list)
 11
 
 MONITOR
-1274
-469
+1269
+466
 1421
-514
+511
 Number of Unsold Houses
 total-num-unsold
 17
+1
+11
+
+MONITOR
+1271
+412
+1419
+457
+Number of Sold Houses
+total-num-sales
+0
 1
 11
 

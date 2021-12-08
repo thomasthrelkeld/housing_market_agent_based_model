@@ -8,6 +8,7 @@ globals [
   total-num-sales
   average-sale-price
   sale-prices-list
+  sale-prices-list-histo
   average-time-on-market
   time-on-market-list
   total-num-unsold
@@ -48,6 +49,7 @@ to setup
   set total-num-sales 0
   set average-sale-price 0
   set sale-prices-list []
+  set sale-prices-list-histo []
   set average-time-on-market 0
   set time-on-market-list []
   set total-num-unsold 0
@@ -104,7 +106,8 @@ end
 
 to update-stats
     set total-num-sales total-num-sales + 1
-    set sale-prices-list lput (10000 * round((accepted-offer-amount / 10000))) sale-prices-list
+    set sale-prices-list-histo lput (10000 * round((accepted-offer-amount / 10000))) sale-prices-list-histo
+    set sale-prices-list lput accepted-offer-amount sale-prices-list
     let temp-sum-of-times-value average-time-on-market * total-num-sales
     let temp-sales-sum average-sale-price * total-num-sales
     set time-on-market-list lput seller-current-days time-on-market-list
@@ -306,8 +309,8 @@ GRAPHICS-WINDOW
 16
 -16
 16
-1
-1
+0
+0
 1
 ticks
 30.0
@@ -476,7 +479,7 @@ MONITOR
 1423
 395
 Average Sale Price
-average-sale-price
+mean sale-prices-list
 2
 1
 11
@@ -487,7 +490,7 @@ MONITOR
 1422
 454
 Average Time on Market
-average-time-on-market
+mean (time-on-market-list)
 3
 1
 11

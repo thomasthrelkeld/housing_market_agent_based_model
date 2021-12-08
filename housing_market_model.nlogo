@@ -84,14 +84,14 @@ to generate-buyer[ pop ]
   create-buyers pop[
     set color 75
     set shape "person"
-    set annual-salary int (random-normal avg-med-income avg-med-income) ; Set the buyer's annual salary based on the average median income for the area. Use random-normal to create variation in the salaries for buyers
+    set annual-salary int abs (random-normal avg-med-income avg-med-income) ; Set the buyer's annual salary based on the average median income for the area. Use random-normal to create variation in the salaries for buyers
     set gross-approved-amount annual-salary * .28 * 30 ; Per Chase (and many other institutions) the 28% rule states that you should spend 28% or less of your monthly gross income on your mortgage payment (inclusive of taxes, interest, and principle). Apply this to the annual salary to determine the total a person can afford over a 30 year period
     set mtg-int-rate prime-int-rate + abs(random-normal 0 1 ) ; Determine the buyer's mortgage interest rate based on prime and their "credit score". Since their interest rate can never be less than prime, take abs value of amount "on top" of prime
     ; Reduce the max purchase price based on the mortgate interest rate selected
     set max-purchase-price ((gross-approved-amount * (1 + (Mtg-Int-Rate / 1200))^(360) - gross-approved-amount) / ((360 * (Mtg-Int-Rate / 1200)) * (1 + (Mtg-Int-Rate / 1200))^(360))) ; Determines how much house a buyer can afford based on the total amount the mortgage company approved them for and the current mortgage interest rate. Assumes a 30 year mortgage for the buyer
     ; Increase the max purchase price based on the tax credit amount if the buyer is elegible. Randomly identifies if the buyer is a first time homebuyer through random 2 = 1 and applies max $15k / tax credit %.
-    ifelse annual-salary > 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
-        [ set tax-credit-amount (max-purchase-price * tax-credit) ][ set tax-credit-amount 0 ]
+    ifelse annual-salary < 110747 ; The income limit will take effect at $69,217*1.6 = $110,747
+        [ set tax-credit-amount (max-purchase-price * (tax-credit / 100)) ][ set tax-credit-amount 0 ]
     set max-purchase-price abs int (max-purchase-price + ( random 2 * (min ( list tax-credit-amount 15000 ))))
     set min-desirability-score (1 + random (4)) ; Determine desirability score for the buyer as a random number between 1-5
     set buyer-desperation-score (1 + random (4)) ; Determine desperation score for the buyer to simulate how agressive they will be in their offer. Allows for psudo-random behavior of people
@@ -218,12 +218,12 @@ to go
                 ifelse ((item i offers) >= (asking-price * (1 - ( 5 * (seller-desperation-score * .01)))) and ((item i offers) < (asking-price * (1 - (seller-desperation-score * .01))))) ; Offer is within 25% of the asking price to counter.
                [
                 ; Based on the buyer's desperation score, counter with a value between 50% and 90% of the difference between the offer and asking price.
-                if (seller-desperation-score = 1) [set asking-price (asking-price - ((asking-price - item i offers) / 10))]
-                if (seller-desperation-score = 2) [set asking-price (asking-price - ((asking-price - item i offers) / 8))]
-                if (seller-desperation-score = 3) [set asking-price (asking-price - ((asking-price - item i offers) / 6))]
-                if (seller-desperation-score = 4) [set asking-price (asking-price - ((asking-price - item i offers) / 4))]
-                if (seller-desperation-score = 5) [set asking-price (asking-price - ((asking-price - item i offers) / 2))]
-                if (asking-price > min-asking-price) [output-type  "Seller counter-offered with a price of $" output-print int asking-price] ; Make sure that the counter offer hasn't dropped below their min threshold. if so, we're going to stop the sale process.
+                if (seller-desperation-score = 1) [set asking-price max ( list (asking-price - ((asking-price - item i offers) / 10)) min-asking-price)]
+                if (seller-desperation-score = 2) [set asking-price max ( list (asking-price - ((asking-price - item i offers) / 8)) min-asking-price)]
+                if (seller-desperation-score = 3) [set asking-price max ( list (asking-price - ((asking-price - item i offers) / 6)) min-asking-price)]
+                if (seller-desperation-score = 4) [set asking-price max ( list (asking-price - ((asking-price - item i offers) / 4)) min-asking-price)]
+                if (seller-desperation-score = 5) [set asking-price max ( list (asking-price - ((asking-price - item i offers) / 2)) min-asking-price)]
+                if (asking-price >= min-asking-price) [output-type  "Seller counter-offered with a price of $" output-print int asking-price] ; Make sure that the counter offer hasn't dropped below their min threshold. if so, we're going to stop the sale process.
                 ; Not sure if we need this or not... If a counter offer is made, we should probably stop evaluating the remaining offers and tick. If we keep evaluating other offers, we will keep counter-offering at lower price points and overwrite the best counter we would make.
                 set i (length offers)
 
@@ -238,9 +238,21 @@ to go
         ]
       ]
       if ((seller-will-exit = false) and (asking-price = starting-asking-price))[ ;Seller didn't accept an offer and the asking price wasn't adjusted due to counter offer or bidding war. Evaluate whether the seller should start reducing price.
-        if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2)) [set asking-price asking-price * .95 output-type  "Seller reduced the asking price to $" output-print int asking-price] ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-        if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) [set asking-price asking-price * .95 output-type  "Seller reduced the asking price to $" output-print int asking-price] ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
-        if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) [set asking-price asking-price * .95 output-type  "Seller reduced the asking price to $" output-print int asking-price] ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate. ]
+        if ((seller-current-days / seller-max-days > .7) and (seller-desperation-score <= 2))  ; If the seller is not desperate to sell and is more than 70% through the duration they're willing to be on the market, start to reduce the price based on being desperate.
+        [
+          set asking-price asking-price * .95
+          if (asking-price >= min-asking-price) [output-type  "Seller reduced the asking price to $" output-print int asking-price]
+        ]
+        if ((seller-current-days / seller-max-days > .5) and (seller-desperation-score = 3)) ; If the seller is not very desperate to sell and is more than 50% through the duration they're willing to be on the market, start to reduce the price based on being desperate.
+        [
+          set asking-price asking-price * .95
+          if (asking-price >= min-asking-price) [output-type  "Seller reduced the asking price to $" output-print int asking-price]
+        ]
+        if ((seller-current-days / seller-max-days > .3) and (seller-desperation-score >= 4)) ; If the seller is desperate to sell and is more than 30% through the duration they're willing to be on the market, start to reduce the price based on being desperate.
+        [
+          set asking-price asking-price * .95
+          if (asking-price >= min-asking-price) [output-type  "Seller reduced the asking price to $" output-print int asking-price]
+        ]
       ]
       ]
      [
@@ -274,13 +286,13 @@ to go
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-273
-14
-710
-452
+278
+10
+785
+518
 -1
 -1
-13.0
+15.121212121212123
 1
 10
 1
@@ -318,10 +330,10 @@ NIL
 1
 
 OUTPUT
-766
-90
-1276
-339
+806
+14
+1424
+335
 11
 
 BUTTON
@@ -344,7 +356,7 @@ NIL
 SLIDER
 7
 181
-201
+231
 214
 Prime-Int-Rate
 Prime-Int-Rate
@@ -359,7 +371,7 @@ HORIZONTAL
 SLIDER
 6
 217
-202
+230
 250
 Avg-Home-Price
 Avg-Home-Price
@@ -374,7 +386,7 @@ HORIZONTAL
 INPUTBOX
 7
 83
-200
+231
 143
 Avg-Med-Income
 70000.0
@@ -385,7 +397,7 @@ Number
 SLIDER
 7
 146
-201
+231
 179
 Tax-Credit
 Tax-Credit
@@ -399,9 +411,9 @@ HORIZONTAL
 
 SLIDER
 6
-251
-264
-284
+253
+231
+286
 Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
@@ -423,10 +435,10 @@ Buyer Variables
 1
 
 PLOT
-766
-367
-966
-517
+806
+349
+1027
+513
 Time on Market
 Days
 Qty
@@ -441,17 +453,17 @@ PENS
 "default" 1.0 1 -16777216 true "" "histogram time-on-market-list"
 
 PLOT
-1009
-373
-1209
-523
+1040
+348
+1259
+511
 Sale Prices
 Sell Price ($)
 Qty
 150000.0
 600000.0
 0.0
-100.0
+10.0
 true
 false
 "" ""
@@ -459,10 +471,10 @@ PENS
 "default" 1.0 1 -16777216 true "" "histogram sale-prices-list\n\n\n"
 
 MONITOR
-1233
-371
-1350
-416
+1274
+350
+1423
+395
 Average Sale Price
 average-sale-price
 2
@@ -470,10 +482,10 @@ average-sale-price
 11
 
 MONITOR
-1227
-430
-1375
-475
+1274
+409
+1422
+454
 Average Time on Market
 average-time-on-market
 3
@@ -481,10 +493,10 @@ average-time-on-market
 11
 
 MONITOR
-1227
-490
-1382
-535
+1274
+469
+1421
+514
 Number of Unsold Houses
 total-num-unsold
 17

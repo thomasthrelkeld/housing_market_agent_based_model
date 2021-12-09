@@ -293,8 +293,8 @@ end
 GRAPHICS-WINDOW
 278
 10
-785
-518
+705
+438
 -1
 -1
 12.7
@@ -367,7 +367,7 @@ Prime-Int-Rate
 Prime-Int-Rate
 3
 19
-6.0
+7.8
 .1
 1
 APR
@@ -382,7 +382,7 @@ Avg-Home-Price
 Avg-Home-Price
 150000
 500000
-240000.0
+360000.0
 10000
 1
 $
@@ -394,7 +394,7 @@ INPUTBOX
 231
 143
 Avg-Med-Income
-63000.0
+69217.0
 1
 0
 Number
@@ -408,7 +408,7 @@ Tax-Credit
 Tax-Credit
 0
 20
-0.0
+10.0
 .1
 1
 %
@@ -423,7 +423,7 @@ Buyer-Seller-Ratio
 Buyer-Seller-Ratio
 0
 10
-4.0
+1.0
 .01
 1
 Buyer per 1 Seller
@@ -522,58 +522,63 @@ total-num-sales
 @#$#@#$#@
 ## WHAT IS IT?
 
-This model attempts to demonstrate how various economic factors (average medium income, interest rates, first-time buyer house credits, etc.) affect housing prices. The ratio of buyers to sellers within the market is also explored. Each factor can be varied to show its effect on the price of houses in the market. This model uses statistics of the Dallas, TX area to seed the model. The goal of the model is to be able to simulate various market scenarios to better predict when is a good time to buy or sell from a market participant’s perspective.
+This model attempts to demonstrate how various economic factors (average median income, interest rates, first-time buyer house credits, etc.) affect housing prices. The ratio of buyers to sellers within the market is also explored. Each factor can be varied to show its effect on the price of houses in the market. This model uses statistics of the Dallas, TX area to seed the model. The goal of the model is to be able to simulate various market scenarios to better predict when is a good time to buy or sell from a market participant’s perspective.
 
 ## HOW IT WORKS
 
-This model follows a single home (with a single seller) until that home is either sold or it exits the market. When the home/seller is initialized, it is given various parameters based on user input from the Interface tab. Each home is initialized given an Asking Price and a House Desirability Score. The seller attached to the home is also given a Desperation score. Asking Price is based on a normal distribution given the average home price set by the user. House Desirability Score is a random number from 1 to 10 that dictates how desirable a house will be to potential buyers. Desperation score is a random number that determines how willing and how soon a seller is willing to accept an offer or how willing the seller may be to lower their initial asking price.
+This model follows a series of sellers as they interact with buyers to sell their homes. One seller is present in the market at a time until their home is either sold or they exit the market. While the seller’s home is on the market, buyers come along and either bid on the house or choose to move on from the house without making an offer. Once the seller’s home is sold, they leave the market, and a new seller is initialized, and the process continues until the user stops the model. 
 
-Once the house is initialized, a random number of buyers is generated each tick that simulate people looking at the house. The frequency of buyers is determined by the buyer-to-seller ratio set by the user. Each buyer is initialized with the parameters Annual Salary, Max Purchase Price, Gross Approved Amount, Tax Credit Amount, Mortgage Interest Rate, Minimum Desirability Score, and Desperation. Annual Salary is assigned using a Normal distribution based on the Average Medium Income set by the user. Max Purchase Price is determined by an equation based on the Gross Approved Amount (a calculated value) and the Prime Interest Rate (set by the user). Gross Approved Amount is calculated by taking the buyer’s Average Annual Salary and assuming a 30 year mortgage and that they will be approved at for percentage of their Average Annual Salary over that time period. Tax Credit Amount is based on the Max Purchase Price and a percentage. Whether or not a buyer gets a tax credit is randomly assigned (this represents whether or not they are a first-time buyer). Mortgage Interest Rate is assigned based on a Normal Distribution given the Prime Interest Rate set by the user. Minimum Desirability Score is a randomly assigned number that determines the lowest desirability score of a potential house that the buyer is willing to settle for. Desperation is a randomly assigned value that determines how close to their Maximum Purchase Price a buyer is willing to spend.
+Before running the model, first the user navigates to the Interface tab and enters an Average Median Income (Avg-Med-Income) by typing in a positive integer. They then set Tax Credit percentage (Tax-Credit), Prime-Int-Rate (Prime Interest Rate), Avg-Home-Price (Average Home Price), and Buyer-Seller-Ratio (Buyer to Seller Ratio) using the sliders. Then, they then click the Setup button. The Setup initializes the model, creates an initial seller, and creates an initial population of buyers. The number of buyers generated at setup (and at each tick) is determined by a random distribution based on the buyer-seller-ratio set by the user. 
+When a seller is initialized, they are given various parameters based on user input from the Interface tab. Each seller is initialized with an Asking Price, a House Desirability Score, a Seller Desperation Score, and a Seller Maximum Days. Asking Price is based on a normal distribution given the average home price set by the user. House Desirability Score is a random number from 1 to 5 that dictates how desirable a house will appear to potential buyers. Seller Desperation Score is a random number from 1 to 5 that determines how soon a seller is willing to accept an offer or how willing the seller may be to lower their initial asking price. Seller Max Days is based on a normal distribution and determines how long the seller is willing to remain on the market before they delist their home and take it off the market.
 
-Once the house/seller and the buyers are initialized, the model operation commences. If a buyer comes across a house whose House Desirability Score that meets the Buyer’s Minimum Desirability Score AND the Asking Price is below the buyers Max Purchase Price, the Buyer submits an offer based on their desperation. A low desperation score means a buyer is more willing to submit an offer that is lower than asking price. A high desperation score means a buyer is more likely to submit an offer that is close to or even over asking price. A buyer cannot submit an offer that is greater than their maximum purchase price, and a buyer will also not submit an offer on a house that has a desirability score less than their minimum desirability score. 
+When each buyer is initialized, they are given the parameters Annual Salary, Gross Approved Amount, Mortgage Interest Rate, Max Purchase Price, Tax Credit Amount, Minimum Desirability Score, and Buyer Desperation Score. Annual Salary is assigned using a normal distribution based on the Average Median Income set by the user. Gross Approved Amount is a calculated value based on the buyer’s Annual Salary and a common money-lending rule of thumb that no more than 28% of a buyer’s income should go toward their home. The calculation also assumes a 30-year mortgage. Mortgage Interest Rate is assigned using the Prime Interest Rate and adding a value obtained from a normal distribution. Max Purchase Price is determined by an equation based on the Gross Approved Amount and the buyer’s Mortgage Interest Rate. Tax Credit Amount is based on the Tax-Credit percentage set by the user. Only buyers with a certain annual salary or less and who are a first-time homebuyer qualify for Tax Credit, so it is only applied and adds to their Max Purchase Price if the buyer meets the criteria. There is also a limit of $15,000 for the Tax Credit. Minimum Desirability Score is a randomly assigned number from 1 to 5 that determines the lowest desirability score of a potential house that the buyer is willing to settle for. Desperation is a randomly assigned value from 1 to 5 that determines how aggressively a buyer will go after a house (i.e., how quickly they will meet or exceed asking price).
 
-If one offer is made, the seller considers the offer. Based on the seller’s asking price and desperation score, the seller will either reject the offer, accept the offer, or submit a counter-offer (i.e. set a new asking price). A seller with a high desperation score (i.e., they are desperate) means they are more likely to settle for below asking price. A seller with a low desperation score (i.e., they are patient) means they are more likely to wait for an offer that is at or above asking price. If the seller rejects the offer or submits a counter-offer, the buyer then decides to either come up in their bidding price or to walk away.
+Once the user has pressed Setup and the initial seller and buyers have been created, the user will observe a house appear in the main window and text will appear on the right-hand side stating “Begin Sale #0, Initial Asking Price: $<xxxxxx>”. This represents the first seller. When the user clicks Go, the model operation will commence. 
 
-If more than one offer is made in a given tick, the seller considers all offers. Again, based on asking price and desperation score, the seller will either reject all offers, accept one offer, or submit counter-offers (post a new asking price). If the offers are rejected or counter-offers are made, the buyers each have the option to come up in their bidding prices or to walk away.
-Bidding continues until the house is off the market (either from being sold or from hitting a maximum time on the market value that is hard coded in the model). Once one house is off the market, a new house/seller is generated and the process continues until the simulation time runs out. 
+Buyers will either bid on a house or move on. The Seller will consider the received offers and decide what to do. If multiple offers are received over asking price, the seller will set a new asking price to the highest offer received and a “bidding war” commences. If one offer is received over asking price, the seller accepts it and the house is sold. If at least one offer is received, but they are all below asking price, the seller considers the offers. If at least one is within what the seller deems is an “acceptable” range of their asking price, the seller will attempt to negotiate by submitting a “counter-offer” to buyers that lowers the asking price to somewhere between the highest offer and their prior asking price. The amount of reduction in price is based on the Seller Desperation Score. If no offers are received within an “acceptable” range of the asking price, the seller rejects all offers. If the seller didn’t submit counteroffers or a bidding-war did not commence, the seller decides on whether to reduce their price based on how long they’ve had their house on the market (compared to the Seller Max Days they are willing to spend on the market) and their Seller Desperation Score. If the seller reaches their Seller Max Days, they exit the market, the house goes unsold and the model is re-initialized with a new seller and a new round of buyers If an offer was accepted, the seller exists the market, the house goes sold (the price and time on market are logged), a new seller is generated, and a new round of buyers is randomly generated. If the Seller Max Days was not reached and no offer was accepted, the model goes to the next tick where existing buyers that stayed in the market for this house will get another chance to submit a new offer on the next tick. This tick will also generate a new set of buyers who may decide to bid on the house or move on from the house.
+
+During model operation, the window in the center of the screen on the Interface tab shows a graphic of a house and buyers coming and going as they look at the house and decide to bid or move on. In the upper-right corner, information about each house sale is displayed (such as initial asking price, each buyer’s offer, the status of the whether the offers are declined or accepted by the seller and the final sale price). As houses are sold, histograms displaying the Time on Market and the Sale Prices are updated. Monitors displaying the Average Sale Price, Average Time on Market, Number of Sold Houses, and Number of Unsold Houses are also displayed. Note that Time on Market and Average Time on Market include both sold and unsold houses and are measured in day (the equivalent of ticks in this model). The model continues running until the user presses Go again. They may then choose to continue running by pressing Go or to re-initialize the entire model, by pressing Setup if they want to run a new simulation or experiment.
+ 
 
 
 ## HOW TO USE IT
 
-To operate the model, set the sliders and user inputs to their desired setting, then hit the Setup button, then the Go button. You will observe a house/seller appear and then buyers coming and going as they appear and either make a bid (or bids) on the house or they decide to walk away. Once one house goes off the market, a new house appears, until the simulation time runs out. As houses are sold, graphs capturing average sell price and average time on market will appear to track model statistics.
+To operate the model, set the Avg-Med-Income to the desired input value and set the sliders (Tax-Credit, Prime-Int-Rate, Avg-Home-Price, and Buyer-Seller Ratio) to their desired settings as well. Then hit the Setup button, then the Go button. You will observe a house/seller appear and then buyers coming and going as they appear and either make a bid (or bids) on the house or they decide to walk away. Once one house goes off the market, a new house appears. The Output in the top-right, and the histograms/monitors in the bottom-right will update in real time as the model runs. To stop the model while it is running, hit the Go button. You can hit the Go button again to resume, or you may choose to set the input and slides to new values, re-initialize the model with the Setup button, and then hit Go to run new experiment with different inputs.
 
-Average Medium Income is an input variable that determines the mean of a normal distribution that governs each buyer’s average annual salary. Average Medium Income is a user input from MIN_INCOME to MAX_INCOME.
+Average Median Income is an input variable that determines the mean of a normal distribution that governs each buyer’s average annual salary. Average Median Income is a user input and is a number. There is no limit set on this by our model, but we recommend entering a realistic number that represents a particular community of interest.
 
-Tax-Credit is a slider that determines the percentage of a buyer’s Maximum Purchase Price they will receive as a tax credit amount. It ranges from 0% (i.e., No Tac Credits offered to anyone) to 20%.
+Tax-Credit is a slider that determines the percentage of a buyer’s Maximum Purchase Price they will receive as a tax credit amount. It ranges from 0% (i.e., No Tax Credits offered to anyone) to 20%. The actual tax credit amount is capped at $15000 and is only applied if a buyer is a first-time homebuyer (randomly assigned by the model) and if they are below a certain annual salary. 
 
-Prime Interest Rate is a slider that determines the mean of a normal distribution that governs each buyer’s mortgage interest rate they receive. It ranges from 3.0 APR to 19.0 APR.
+Prime Interest Rate is a slider that determines the base of a buyer’s mortgage interest rate. A random value based on a normal distribution is added to determine each buyer’s mortgage interest rate they receive. Prime Interest Rate ranges from 3.0 APR to 19.0 APR.
 
-Average Home Price is a slider that determines the mean of a normal distribution that governs each seller’s starting Asking Price. It ranges from $150,000 to $500,000. 
+Average Home Price is a slider that determines the mean of a normal distribution that governs each seller’s Initial Asking Price. It ranges from $150,000 to $500,000. 
 
-Buyer-Seller-Ratio is a slider that represents how “hot” the market is. It ranges from 0 buyers to sellers (no one is able to sell their homes) to 10 buyers to sellers (representing a market where there are many more buyers than there are sellers). 
+Buyer-Seller-Ratio is a slider that represents how “hot” the market is. It ranges from 0 buyers to sellers (very few buyers on the market) to 10 buyers to sellers (representing a market where there are many more buyers than there are sellers). 
 
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
-TBSL – after we run the model, we can fill this in
+While running the model, notice as houses are sold that two histograms, an output display, and several monitors display real-time information as the model executes. The Time on Market and the Sale Prices histograms show how long each house has spent on the market (for both sold and unsold houses) and how much each house sold for (for sold house only) respectively. The monitors display the Average Sale Price, Average Time on Market, Number of Sold Houses, and Number of Unsold Houses. As you run successive experiments note how varying an input parameter affects each histogram and monitor.
+
 
 ## THINGS TO TRY
 
 Try adjusting each input variable individually starting with Average Median Income. What happens to the average sale price and average time on market when Average Median Income is Low? In the Middle? High? 
+
 Try the same thing with each input variable and note what happens to average sale price and average time on market?
+
 Was there any one variable that had a greater impact than the rest?
 
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-TBSL – let’s see how much we get done
+At the outset of the project, the team identified numerous factors that could go into a complex economic model such as the housing market. Due to time-constraints, some details were left out of the model, or some areas were simplified given the relatively short nature of the course. There are, therefore, several things that could be done to extend the model. For example, the team identified unemployment rate and age of population as two potential variables that could be added to extend the model. Another area to extend the model would be to include a region variable (or variables) into the model. For example, is a house in rural area or an urban area? Is it in a neighborhood that would be considered poor or affluent? What are the school system ratings and the crime rate in the area? All of these questions lead to variables or features that could be added to extend the model. Each seller’s house could be given a school rating and crime rate based on the location/neighborhood. Each seller’s house could also be given number of bathrooms, number of bedrooms, kitchen quality, amenities score, etc., and buyers could likewise be given minimum search criteria scores in each of these categories. Ultimately, the team decided for this project to simplify into a “house desirability score” which is meant to encapsulate one score to represent a combination of these factors.
+
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-TBSL – let’s see if there are any interesting features or if there are any workarounds needed.
+Sellers and Buyers were created as breeds so they could own specific variables. The buyer and seller logic blocks use extensive “ifelse” statements to model all the decisions that the buyers and sellers need to make. The “abs” (absolute value) and “rand” functions were used extensively to ensure numbers were positive where needed and to generate variability (either to initialize “pseudorandom” buyers and sellers or to represent variability in human behavior). Lists were used to track offers and stats during model execution. Finally, “random-normal” and “random-float” functions were used as process generators to introduce variability and introduce pseudo-randomness where needed.
+
 
 ## RELATED MODELS
 
